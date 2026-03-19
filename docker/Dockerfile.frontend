@@ -1,0 +1,35 @@
+# --- Build aşaması ---
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# --- Runtime aşaması (Next.js) ---
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
+
+USER appuser
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
+
+# ---
+# Not: Angular veya başka framework için build komutu ve output dizini değişir.
+# Angular: npm run build → dist/ → nginx ile servis edilir.
+# Nginx kullanan Angular için ayrı Dockerfile.frontend.angular oluşturun.
+# ---

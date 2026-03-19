@@ -1,0 +1,61 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  backend:
+    name: Backend Build & Test
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('backend/pom.xml') != '' || hashFiles('pom.xml') != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Java 17 kur
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build ve test
+        run: |
+          POM="pom.xml"
+          if [ -f "backend/pom.xml" ]; then POM="backend/pom.xml"; fi
+          mvn -f $POM --no-transfer-progress verify
+
+  frontend:
+    name: Frontend Build & Lint
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('frontend/package.json') != '' || hashFiles('package.json') != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node.js kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            package-lock.json
+
+      - name: Bağımlılıkları yükle
+        run: |
+          if [ -f "frontend/package.json" ]; then
+            cd frontend && npm ci
+          else
+            npm ci
+          fi
+
+      - name: Build
+        run: |
+          if [ -f "frontend/package.json" ]; then
+            cd frontend && npm run build
+          else
+            npm run build
+          fi
