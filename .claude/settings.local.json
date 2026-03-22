@@ -1,7 +1,46 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Skill(update-config)",
+      "Read(//c/Program Files/PostgreSQL/**)",
+      "Bash(sc query:*)",
+      "Bash(net start:*)",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql.exe\" --version 2>&1)",
+      "Bash(PGPASSWORD='&pH\\(nAfj_I!#S7dw' \"C:/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -c \"SELECT 1\" 2>&1)",
+      "Bash(PGPASSWORD='&pH\\(nAfj_I!#S7dw' \"C:/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"SELECT 1\" 2>&1)",
+      "Bash(PGPASSWORD='%26pH%28nAfj_I%21%23S7dw' \"C:/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"SELECT 1\" 2>&1)",
+      "Bash(PGPASSWORD='%26pH\\(nAfj_I!#S7dw' \"C:/Program Files/PostgreSQL/18/bin/psql.exe\" -U postgres -h 127.0.0.1 -c \"SELECT 1\" 2>&1)",
+      "Bash(python3 -c \"import sys,urllib.parse; print\\(urllib.parse.unquote\\(sys.stdin.read\\(\\).strip\\(\\)\\)\\)\")",
+      "Bash(python -c \"import sys,urllib.parse; print\\(urllib.parse.unquote\\(sys.stdin.read\\(\\).strip\\(\\)\\)\\)\")",
+      "Bash(cmd //c \"netstat -an | findstr 5432\")",
+      "Bash(ls /c/projects_beta/giderlerim/backend/mvnw*)",
+      "Bash(mvn --version)",
+      "Bash(mvn spring-boot:run)",
+      "Bash(npm install:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill //F //IM java.exe)",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":8080\")",
+      "Bash(findstr \"LISTENING\")",
+      "Bash(tasklist /FI \"PID eq 30300\" /FO LIST)",
+      "Bash(tasklist //FI \"PID eq 30300\" //FO LIST)",
+      "Bash(powershell -Command \"Get-Process -Id 30300 | Select-Object Id, ProcessName, Description\")",
+      "Bash(powershell -Command \"Stop-Process -Id 30300 -Force\")",
+      "Bash(find c:/projects_beta/giderlerim/frontend -name middleware.*)",
+      "Bash(mvn clean:*)",
+      "Bash(find /c/projects_beta/giderlerim/backend -type f -name *Belge* -o -name *Dokument* -o -name *Upload* -o -name *File*)",
+      "Bash(PGPASSWORD=giderlerimpassword psql -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \"SELECT COUNT\\(*\\) FROM kategoriler WHERE sistem_mi = TRUE;\")",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \"SELECT id, ad, ikon FROM kategoriler WHERE sistem_mi = TRUE ORDER BY id;\")",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \":*)",
+      "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim --set=client_encoding=UTF8 -f \"c:/projects_beta/giderlerim/kategoriler_seed.sql\")",
+      "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \"SELECT id, ad, ikon, sistem_mi FROM kategoriler ORDER BY sistem_mi DESC, id;\")",
+      "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim --set=client_encoding=UTF8 -f \"c:/projects_beta/giderlerim/kategoriler_fix.sql\")",
+      "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \"SELECT k.id, k.ad FROM kategoriler k WHERE k.id IN \\(SELECT DISTINCT kategori_id FROM butceler WHERE kategori_id BETWEEN 1 AND 12\\);\")",
+      "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \":*)",
+      "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \"SELECT id, ad, ikon FROM kategoriler WHERE sistem_mi = TRUE ORDER BY id;\")",
+      "Bash(ls /c/projects_beta/giderlerim/frontend/src/app/\\\\\\(dashboard\\\\\\))"
     ]
   }
 }
