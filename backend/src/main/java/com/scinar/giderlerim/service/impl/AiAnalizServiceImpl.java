@@ -185,7 +185,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     @Transactional
     public ApiResponse<AiAnalizResponse> anomaliTespitEt(Long kullaniciId) {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
-        // Anomali tespiti FREE planı için de mevcut (sınırlı)
+        planKontrolEt(kullanici, PlanTuru.ULTRA, "Anomali tespiti");
 
         LocalDate ucAyOnce = LocalDate.now().minusMonths(3);
         List<Gider> giderler = giderRepository.findSon3AyGiderler(kullaniciId, ucAyOnce);

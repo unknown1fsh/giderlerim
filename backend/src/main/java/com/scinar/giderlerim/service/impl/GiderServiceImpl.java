@@ -12,7 +12,9 @@ import com.scinar.giderlerim.entity.Kullanici;
 import com.scinar.giderlerim.entity.enums.GirisTuru;
 import com.scinar.giderlerim.entity.enums.OdemeYontemi;
 import com.scinar.giderlerim.entity.enums.ParaBirimi;
+import com.scinar.giderlerim.entity.enums.PlanTuru;
 import com.scinar.giderlerim.exception.KayitBulunamadiException;
+import com.scinar.giderlerim.exception.PlanLimitiAsimException;
 import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KategoriRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
@@ -88,6 +90,19 @@ public class GiderServiceImpl implements GiderService {
     public ApiResponse<GiderResponse> olustur(Long kullaniciId, GiderOlusturRequest request) {
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı."));
+
+        // FREE plan: aylık 50 gider limiti
+        if (kullanici.getPlan() == PlanTuru.FREE) {
+            int ay = request.tarih().getMonthValue();
+            int yil = request.tarih().getYear();
+            long aylikGiderSayisi = giderRepository.countByKullaniciIdAndAyAndYil(kullaniciId, ay, yil);
+            if (aylikGiderSayisi >= 50) {
+                throw new PlanLimitiAsimException(
+                        "Ücretsiz planda aylık 50 gider girişi hakkınız bulunmaktadır. " +
+                        "PREMIUM'a geçerek sınırsız gider ekleyebilirsiniz."
+                );
+            }
+        }
 
         Kategori kategori = kategoriRepository
                 .findByIdAndKullaniciIdOrSistemMi(request.kategoriId(), kullaniciId)

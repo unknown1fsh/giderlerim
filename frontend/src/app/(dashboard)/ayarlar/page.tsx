@@ -396,6 +396,7 @@ function PlanTab({ plan }: { plan: PlanTuru }) {
   const userPlanIndex = PLAN_ORDER.indexOf(plan);
   const meta = PLAN_META[plan];
   const PlanIkon = meta.Ikon;
+  const [yukseltmeMesaji, setYukseltmeMesaji] = useState<string | null>(null);
 
   return (
     <>
@@ -464,12 +465,16 @@ function PlanTab({ plan }: { plan: PlanTuru }) {
                 </ul>
 
                 {isUpgrade && (
-                  <button className={clsx(
-                    'w-full rounded-lg border px-3 py-2 text-xs font-semibold transition-colors',
-                    p === 'ULTRA'
-                      ? 'border-accent/40 bg-accent/10 text-accent hover:bg-accent/20'
-                      : 'border-warning/40 bg-warning/10 text-warning hover:bg-warning/20'
-                  )}>
+                  <button
+                    onClick={() => setYukseltmeMesaji(
+                      `${m.etiket} planına geçmek için destek@giderlerim.com adresine e-posta gönderin veya yönetici ile iletişime geçin.`
+                    )}
+                    className={clsx(
+                      'w-full rounded-lg border px-3 py-2 text-xs font-semibold transition-colors',
+                      p === 'ULTRA'
+                        ? 'border-accent/40 bg-accent/10 text-accent hover:bg-accent/20'
+                        : 'border-warning/40 bg-warning/10 text-warning hover:bg-warning/20'
+                    )}>
                     {m.etiket}&apos;a Geç
                   </button>
                 )}
@@ -478,6 +483,13 @@ function PlanTab({ plan }: { plan: PlanTuru }) {
           })}
         </div>
       </SectionCard>
+
+      {yukseltmeMesaji && (
+        <div className="flex items-start gap-2 rounded-xl border border-accent/30 bg-accent/10 p-3">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 text-accent mt-0.5" />
+          <p className="text-xs text-accent">{yukseltmeMesaji}</p>
+        </div>
+      )}
     </>
   );
 }

@@ -12,8 +12,10 @@ import com.scinar.giderlerim.entity.enums.GirisTuru;
 import com.scinar.giderlerim.entity.enums.OdemeYontemi;
 import com.scinar.giderlerim.entity.enums.ParaBirimi;
 import com.scinar.giderlerim.entity.enums.YuklemeDurumu;
+import com.scinar.giderlerim.entity.enums.PlanTuru;
 import com.scinar.giderlerim.exception.GecersizDosyaException;
 import com.scinar.giderlerim.exception.KayitBulunamadiException;
+import com.scinar.giderlerim.exception.PlanLimitiAsimException;
 import com.scinar.giderlerim.repository.CsvYuklemeRepository;
 import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KategoriRepository;
@@ -74,6 +76,19 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
 
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı."));
+
+        // Plan kontrolü: FREE kullanıcılar aylık 1 CSV yükleyebilir
+        if (kullanici.getPlan() == PlanTuru.FREE) {
+            int ay = LocalDate.now().getMonthValue();
+            int yil = LocalDate.now().getYear();
+            long aylikYukleme = csvYuklemeRepository.countByKullaniciIdAndAyAndYil(kullaniciId, ay, yil);
+            if (aylikYukleme >= 1) {
+                throw new PlanLimitiAsimException(
+                        "Ücretsiz planda aylık 1 CSV yükleme hakkınız bulunmaktadır. " +
+                        "PREMIUM'a geçerek sınırsız yükleme yapabilirsiniz."
+                );
+            }
+        }
 
         // Yükleme kaydı oluştur
         CsvYukleme yukleme = CsvYukleme.builder()

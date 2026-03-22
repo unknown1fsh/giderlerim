@@ -14,4 +14,11 @@ public interface CsvYuklemeRepository extends JpaRepository<CsvYukleme, Long> {
     List<CsvYukleme> findByKullaniciIdOrderByCreatedAtDesc(@Param("kullaniciId") Long kullaniciId);
 
     Optional<CsvYukleme> findByIdAndKullaniciId(Long id, Long kullaniciId);
+
+    @Query("SELECT COUNT(c) FROM CsvYukleme c WHERE c.kullanici.id = :kullaniciId " +
+           "AND EXTRACT(MONTH FROM c.createdAt) = :ay AND EXTRACT(YEAR FROM c.createdAt) = :yil")
+    long countByKullaniciIdAndAyAndYil(
+            @Param("kullaniciId") Long kullaniciId,
+            @Param("ay") int ay,
+            @Param("yil") int yil);
 }

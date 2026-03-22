@@ -197,7 +197,8 @@ public class AiSohbetServiceImpl implements AiSohbetService {
     @Override
     @Transactional
     public ApiResponse<Void> oturumKapat(Long kullaniciId, Long oturumId) {
-        kullaniciGetir(kullaniciId);
+        Kullanici kullanici = kullaniciGetir(kullaniciId);
+        planKontrolEt(kullanici);
 
         AiSohbetOturumu oturum = oturumRepository.findByIdAndKullaniciIdAndDeletedAtIsNull(oturumId, kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Sohbet oturumu bulunamadı. ID: " + oturumId));

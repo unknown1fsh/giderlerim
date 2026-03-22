@@ -18,6 +18,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { csvService, CsvYuklemeResponse } from '@/services/csvService';
 import { clsx } from 'clsx';
 import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/authStore';
 
 const BEKLENEN_FORMAT = `tarih,aciklama,tutar,odeme_yontemi
 2024-01-15,Market alışverişi,250.50,NAKIT
@@ -50,6 +51,9 @@ function YuklemeDurumBadge({ durum }: { durum: CsvYuklemeResponse['durum'] }) {
 }
 
 export default function CsvYuklePage() {
+  const { kullanici } = useAuthStore();
+  const isFree = kullanici?.plan === 'FREE';
+
   const [surukleniyorMu, setSurukleniyorMu] = useState(false);
   const [yukleniyorMu, setYukleniyorMu] = useState(false);
   const [sonYukleme, setSonYukleme] = useState<CsvYuklemeResponse | null>(null);
@@ -109,6 +113,17 @@ export default function CsvYuklePage() {
         baslik="CSV Yükle"
         altBaslik="Banka veya kart ekstrenizi toplu olarak içe aktarın"
       />
+
+      {isFree && (
+        <div className="mb-2 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 p-3">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 text-warning mt-0.5" />
+          <p className="text-xs text-warning">
+            Ücretsiz planda aylık <strong>1 CSV yükleme</strong> hakkınız var.
+            Sınırsız yükleme için{' '}
+            <a href="/ayarlar" className="underline">Premium&apos;a geçin</a>.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Upload Area */}
