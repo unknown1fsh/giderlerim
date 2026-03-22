@@ -10,5 +10,6 @@ public record KullaniciResponse(
         String email,
         PlanTuru plan,
         ParaBirimi paraBirimi,
-        String avatarUrl
+        String avatarUrl,
+        Boolean adminMi
 ) {}

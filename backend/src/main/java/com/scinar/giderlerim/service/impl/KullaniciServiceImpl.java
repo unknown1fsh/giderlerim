@@ -74,7 +74,8 @@ public class KullaniciServiceImpl implements KullaniciService {
                 kullanici.getEmail(),
                 kullanici.getPlan(),
                 kullanici.getParaBirimi(),
-                kullanici.getAvatarUrl()
+                kullanici.getAvatarUrl(),
+                kullanici.getAdminMi()
         );
     }
 }

@@ -63,6 +63,10 @@ public class Kullanici implements UserDetails {
     @Column(name = "son_giris_tarihi")
     private LocalDateTime sonGirisTarihi;
 
+    @Column(name = "admin_mi", nullable = false)
+    @Builder.Default
+    private Boolean adminMi = false;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
@@ -87,6 +91,12 @@ public class Kullanici implements UserDetails {
     // UserDetails implementasyonu
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (Boolean.TRUE.equals(adminMi)) {
+            return List.of(
+                    new SimpleGrantedAuthority("ROLE_ADMIN"),
+                    new SimpleGrantedAuthority("ROLE_" + plan.name())
+            );
+        }
         return List.of(new SimpleGrantedAuthority("ROLE_" + plan.name()));
     }
 

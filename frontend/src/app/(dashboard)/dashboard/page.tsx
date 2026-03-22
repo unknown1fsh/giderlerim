@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Bot,
   Receipt,
+  Shield,
 } from 'lucide-react';
 import Link from 'next/link';
 import { PageContainer } from '@/components/shared/PageContainer';
@@ -62,16 +63,27 @@ export default function DashboardPage() {
         baslik="Dashboard"
         altBaslik="Finansal durumunuza genel bakış"
         eylem={
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-bg-primary px-2 py-1.5 shadow-sm shadow-black/[0.04]">
-            <button onClick={oncekiAy} className="rounded p-1 text-text-muted hover:bg-bg-secondary hover:text-text-primary transition-colors">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="min-w-[120px] text-center text-sm font-semibold text-text-primary">
-              {AYLAR[ay - 1]} {yil}
-            </span>
-            <button onClick={sonrakiAy} className="rounded p-1 text-text-muted hover:bg-bg-secondary hover:text-text-primary transition-colors">
-              <ChevronRight className="h-4 w-4" />
-            </button>
+          <div className="flex items-center gap-2">
+            {kullanici?.adminMi && (
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 rounded-lg border border-accent/40 bg-accent/10 px-3 py-1.5 text-sm font-medium text-accent hover:bg-accent/20 transition-colors"
+              >
+                <Shield className="h-4 w-4" />
+                Admin Paneli
+              </Link>
+            )}
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-bg-primary px-2 py-1.5 shadow-sm shadow-black/[0.04]">
+              <button onClick={oncekiAy} className="rounded p-1 text-text-muted hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="min-w-[120px] text-center text-sm font-semibold text-text-primary">
+                {AYLAR[ay - 1]} {yil}
+              </span>
+              <button onClick={sonrakiAy} className="rounded p-1 text-text-muted hover:bg-bg-secondary hover:text-text-primary transition-colors">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         }
       />

@@ -40,7 +40,31 @@
       "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \"SELECT k.id, k.ad FROM kategoriler k WHERE k.id IN \\(SELECT DISTINCT kategori_id FROM butceler WHERE kategori_id BETWEEN 1 AND 12\\);\")",
       "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \":*)",
       "Bash(PGPASSWORD=giderlerimpassword PGCLIENTENCODING=UTF8 \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -p 5432 -U giderlerimuser -d giderlerim -c \"SELECT id, ad, ikon FROM kategoriler WHERE sistem_mi = TRUE ORDER BY id;\")",
-      "Bash(ls /c/projects_beta/giderlerim/frontend/src/app/\\\\\\(dashboard\\\\\\))"
+      "Bash(ls /c/projects_beta/giderlerim/frontend/src/app/\\\\\\(dashboard\\\\\\))",
+      "Bash(ls -la /c/projects_beta/giderlerim/frontend/src/app/\\\\\\(dashboard\\\\\\)/ayarlar/)",
+      "Bash(ls -la /c/projects_beta/giderlerim/frontend/src/app/\\\\\\(dashboard\\\\\\)/ayarlar/page.tsx)",
+      "Bash(cat \"/c/projects_beta/giderlerim/frontend/src/app/\\(dashboard\\)/ayarlar/page.tsx\")",
+      "Bash(find /c/projects_beta/giderlerim/backend/src/main/java/com/scinar/giderlerim/controller -type f -name \"*.java\" -exec basename {})",
+      "Bash(cat /c/projects_beta/giderlerim/frontend/src/app/\\\\\\(dashboard\\\\\\)/layout.tsx)",
+      "Bash(PGPASSWORD=giderlerimpassword psql -h localhost -U giderlerimuser -d giderlerim -c \"SELECT id, email, admin_mi, created_at FROM kullanicilar WHERE deleted_at IS NULL ORDER BY created_at;\")",
+      "Read(//mnt/c/Program Files/PostgreSQL/18/bin/**)",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U giderlerimuser -d giderlerim -c \"SELECT id, email, admin_mi FROM kullanicilar WHERE deleted_at IS NULL ORDER BY created_at;\")",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U giderlerimuser -d giderlerim -c \"\\\\d kullanicilar\")",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U giderlerimuser -d giderlerim -c \"SELECT id, email, plan, aktif FROM kullanicilar ORDER BY created_at;\")",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U giderlerimuser -d giderlerim -c \":*)",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U giderlerimuser -d giderlerim << 'SQL':*)",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U giderlerimuser -d giderlerim -c \"SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;\")",
+      "Bash(python \"/c/Program Files/Python313/python.exe\" -c \":*)",
+      "Bash(node -e \":*)",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U giderlerimuser -d giderlerim -c \"SELECT id, email, plan, admin_mi, aktif FROM kullanicilar ORDER BY id;\" -c \"SELECT COUNT\\(*\\) AS parametre_sayisi FROM sistem_parametreleri;\" -c \"SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;\")",
+      "Bash(python3 -c \"import bcrypt; h = bcrypt.hashpw\\(b''L3g3nd4ry1.'', bcrypt.gensalt\\(10\\)\\); print\\(h.decode\\(\\)\\)\")",
+      "Bash(python -c \"import bcrypt; h = bcrypt.hashpw\\(b''L3g3nd4ry1.'', bcrypt.gensalt\\(10\\)\\); print\\(h.decode\\(\\)\\)\")",
+      "Bash(pip install:*)",
+      "Bash(PGPASSWORD=giderlerimpassword psql -h localhost -U giderlerimuser -d giderlerim -c \"UPDATE kullanicilar SET sifre_hash = ''$2b$10$/hCKxYxTaFbQBz7RWXUEwu22nbiWkeJFSjHeGq0ukQlGtKemjeVge'', admin_mi = TRUE, aktif = TRUE, email_dogrulandi = TRUE, updated_at = NOW\\(\\) WHERE email = ''slmsrcncnr@gmail.com'' RETURNING id, email, admin_mi, aktif, email_dogrulandi;\")",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -U giderlerimuser -d giderlerim -c \"UPDATE kullanicilar SET sifre_hash = ''$2b$10$/hCKxYxTaFbQBz7RWXUEwu22nbiWkeJFSjHeGq0ukQlGtKemjeVge'', admin_mi = TRUE, aktif = TRUE, email_dogrulandi = TRUE, updated_at = NOW\\(\\) WHERE email = ''slmsrcncnr@gmail.com'' RETURNING id, email, admin_mi, aktif, email_dogrulandi;\")",
+      "Bash(mvn flyway:repair -Dflyway.url=jdbc:postgresql://localhost:5432/giderlerim -Dflyway.user=giderlerimuser -Dflyway.password=giderlerimpassword)",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -U giderlerimuser -d giderlerim -c \"UPDATE kullanicilar SET sifre_hash = ''$2a$10$b6HExc9bFkxACekbrBCy5ug.W0arEYOJy6Ts6D/sfyCFxqJFLCxMe'', updated_at = NOW\\(\\) WHERE email = ''slmsrcncnr@gmail.com'' RETURNING id, email, LEFT\\(sifre_hash, 7\\) as hash_prefix;\")",
+      "Bash(PGPASSWORD=giderlerimpassword \"/c/Program Files/PostgreSQL/18/bin/psql.exe\" -h localhost -U giderlerimuser -d giderlerim -c \"SELECT id, email, sifre_hash FROM kullanicilar WHERE email = ''slmsrcncnr@gmail.com'';\")"
     ]
   }
 }

@@ -185,11 +185,14 @@ export default function AiKocPage() {
               </div>
             ) : (
               oturumlar.map((oturum) => (
-                <button
+                <div
                   key={oturum.id}
                   onClick={() => selectOturum(oturum.id)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && selectOturum(oturum.id)}
                   className={clsx(
-                    'group flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-bg-secondary',
+                    'group flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left transition-colors hover:bg-bg-secondary',
                     aktifOturumId === oturum.id && 'bg-bg-secondary border-l-2 border-accent'
                   )}
                 >
@@ -213,7 +216,7 @@ export default function AiKocPage() {
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
-                </button>
+                </div>
               ))
             )}
           </div>

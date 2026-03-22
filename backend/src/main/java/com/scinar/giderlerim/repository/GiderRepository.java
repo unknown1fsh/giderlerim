@@ -124,4 +124,10 @@ public interface GiderRepository extends JpaRepository<Gider, Long> {
 
     @Query("SELECT COUNT(g) FROM Gider g WHERE g.kullanici.id = :kullaniciId AND g.anormalMi = true AND g.deletedAt IS NULL")
     long countAnormalByKullaniciId(@Param("kullaniciId") Long kullaniciId);
+
+    @Query("SELECT COUNT(g) FROM Gider g WHERE g.deletedAt IS NULL")
+    long countToplamGider();
+
+    @Query("SELECT COALESCE(SUM(g.tutar), 0) FROM Gider g WHERE g.deletedAt IS NULL")
+    BigDecimal sumToplamGiderTutari();
 }

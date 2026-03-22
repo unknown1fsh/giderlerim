@@ -9,6 +9,7 @@ export interface KullaniciResponse {
   plan: PlanTuru;
   paraBirimi: ParaBirimi;
   avatarUrl: string | null;
+  adminMi: boolean;
 }
 
 export interface ProfilGuncelleRequest {

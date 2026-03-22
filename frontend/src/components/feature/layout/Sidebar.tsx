@@ -17,6 +17,7 @@ import {
   Star,
   X,
   LogOut,
+  Shield,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -127,6 +128,38 @@ export function Sidebar() {
               );
             })}
           </ul>
+
+          {/* Admin Bölümü */}
+          {kullanici?.adminMi && (
+            <div className="mt-4 border-t border-white/10 pt-4">
+              <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-text-muted">
+                Yönetim
+              </p>
+              <Link
+                href="/admin"
+                onClick={() => {
+                  if (window.innerWidth < 1024) sidebarKapat();
+                }}
+                className={clsx(
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                  pathname.startsWith('/admin')
+                    ? 'bg-accent/15 text-white'
+                    : 'text-sidebar-text hover:bg-sidebar-hover hover:text-white'
+                )}
+              >
+                <Shield
+                  className={clsx(
+                    'h-4 w-4 flex-shrink-0',
+                    pathname.startsWith('/admin') ? 'text-accent' : 'text-sidebar-text'
+                  )}
+                />
+                Admin Paneli
+                {pathname.startsWith('/admin') && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-accent" />
+                )}
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* Upgrade Banner for FREE users */}
