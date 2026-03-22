@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `try{const t=localStorage.getItem('tema');if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}` }} />
       </head>
