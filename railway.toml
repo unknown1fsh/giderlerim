@@ -2,5 +2,6 @@
 dockerfilePath = "Dockerfile"
 
 [deploy]
+port = 3000
 healthcheckPath = "/api/v1/actuator/health"
 healthcheckTimeout = 300
