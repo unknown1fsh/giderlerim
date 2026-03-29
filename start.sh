@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Backend (Spring Boot) - port 8080
-java -jar /app/backend/app.jar --server.port=8080 --server.address=127.0.0.1 &
+# Backend (Spring Boot) - port 8081
+java -jar /app/backend/app.jar --server.port=8081 --server.address=127.0.0.1 &
 
-# Frontend (Next.js) - port 3000
+# Frontend (Next.js) - port $PORT
 cd /app/frontend
-PORT=3000 HOSTNAME=0.0.0.0 node server.js
+PORT=${PORT:-8080} HOSTNAME=0.0.0.0 node server.js
