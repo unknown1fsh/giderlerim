@@ -1,8 +1,14 @@
 package com.scinar.giderlerim.controller;
 
 import com.scinar.giderlerim.dto.admin.*;
+import com.scinar.giderlerim.dto.request.DestekTalebiYanitlaRequest;
 import com.scinar.giderlerim.dto.response.ApiResponse;
+import com.scinar.giderlerim.dto.response.DestekTalebiResponse;
+import com.scinar.giderlerim.dto.response.SayfaliResponse;
+import com.scinar.giderlerim.entity.enums.DestekDurumu;
 import com.scinar.giderlerim.service.AdminService;
+import com.scinar.giderlerim.service.DestekTalebiService;
+import com.scinar.giderlerim.util.SecurityYardimcisi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +26,7 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final DestekTalebiService destekTalebiService;
 
     // ── İstatistikler ──────────────────────────────────────────────────────
 
@@ -93,5 +100,37 @@ public class AdminController {
     @DeleteMapping("/sistem-parametreleri/{id}")
     public ResponseEntity<ApiResponse<Void>> parametreSil(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.parametreSil(id));
+    }
+
+    // ── Destek Talepleri ──────────────────────────────────────────────────
+
+    @GetMapping("/destek-talepleri")
+    public ResponseEntity<ApiResponse<SayfaliResponse<DestekTalebiResponse>>> destekTalepleriListele(
+            @RequestParam(required = false) String durum,
+            @RequestParam(required = false) String oncelik,
+            @RequestParam(required = false) String kategori,
+            @RequestParam(defaultValue = "0") int sayfa,
+            @RequestParam(defaultValue = "20") int boyut) {
+        return ResponseEntity.ok(destekTalebiService.adminTumTalepleri(durum, oncelik, kategori, sayfa, boyut));
+    }
+
+    @GetMapping("/destek-talepleri/{id}")
+    public ResponseEntity<ApiResponse<DestekTalebiResponse>> destekTalebiGetir(@PathVariable Long id) {
+        return ResponseEntity.ok(destekTalebiService.adminTalebiGetir(id));
+    }
+
+    @PutMapping("/destek-talepleri/{id}/yanitla")
+    public ResponseEntity<ApiResponse<DestekTalebiResponse>> destekTalebiYanitla(
+            @PathVariable Long id,
+            @Valid @RequestBody DestekTalebiYanitlaRequest request) {
+        Long adminId = SecurityYardimcisi.mevcutKullaniciId();
+        return ResponseEntity.ok(destekTalebiService.adminYanitla(id, adminId, request));
+    }
+
+    @PutMapping("/destek-talepleri/{id}/durum")
+    public ResponseEntity<ApiResponse<DestekTalebiResponse>> destekTalebiDurumGuncelle(
+            @PathVariable Long id,
+            @RequestParam DestekDurumu durum) {
+        return ResponseEntity.ok(destekTalebiService.adminDurumGuncelle(id, durum));
     }
 }

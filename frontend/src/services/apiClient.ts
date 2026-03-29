@@ -34,11 +34,11 @@ apiClient.interceptors.response.use(
           }
         } catch {
           sessionStorage.clear();
-          window.location.href = '/giris';
+          window.location.href = '/signin';
         }
       } else {
         sessionStorage.clear();
-        window.location.href = '/giris';
+        window.location.href = '/signin';
       }
     }
     return Promise.reject(error);

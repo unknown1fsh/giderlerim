@@ -38,6 +38,8 @@ export interface AdminIstatistikDto {
   toplamBelgeYuklemeSayisi: number;
   toplamUyariSayisi: number;
   okunmamisUyariSayisi: number;
+  toplamDestekTalebiSayisi: number;
+  acikDestekTalebiSayisi: number;
 }
 
 export interface SistemParametresiDto {

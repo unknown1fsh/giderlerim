@@ -1,493 +1,407 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import {
-  Settings,
-  Plus,
-  RotateCcw,
-  Edit,
-  Trash2,
-  Save,
-  X,
-  AlertTriangle,
-  Check,
-  Lock,
-} from 'lucide-react';
-import { PageContainer } from '@/components/shared/PageContainer';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '@/services/adminService';
 import { SistemParametresiDto, SistemParametresiOlusturRequest } from '@/types/admin.types';
-import { clsx } from 'clsx';
 
-type Kategori = 'HEPSI' | 'GENEL' | 'GUVENLIK' | 'AI' | 'SISTEM' | 'PLAN';
-
-const KATEGORILER: { deger: Kategori; etiket: string; renk: string }[] = [
-  { deger: 'HEPSI', etiket: 'Tümü', renk: 'text-text-secondary' },
-  { deger: 'GENEL', etiket: 'Genel', renk: 'text-text-secondary' },
-  { deger: 'GUVENLIK', etiket: 'Güvenlik', renk: 'text-danger' },
-  { deger: 'AI', etiket: 'Yapay Zeka', renk: 'text-accent' },
-  { deger: 'SISTEM', etiket: 'Sistem', renk: 'text-warning' },
-  { deger: 'PLAN', etiket: 'Planlar', renk: 'text-success' },
-];
-
-const TIP_RENK: Record<string, string> = {
-  STRING: 'bg-accent/10 text-accent',
-  NUMBER: 'bg-success/10 text-success',
-  BOOLEAN: 'bg-warning/10 text-warning',
+const KATEGORI_ETIKETLER: Record<string, string> = {
+  GENEL: 'Genel',
+  GUVENLIK: 'Güvenlik',
+  AI: 'AI',
+  SISTEM: 'Sistem',
+  PLAN: 'Plan',
 };
 
-interface SatirProps {
-  parametre: SistemParametresiDto;
-  onGuncelle: (id: number, deger: string) => Promise<void>;
-  onVarsayilan: (id: number) => Promise<void>;
-  onSil: (id: number) => void;
-}
+const TIP_ETIKETLER: Record<string, string> = {
+  STRING: 'Metin',
+  NUMBER: 'Sayı',
+  BOOLEAN: 'Boolean',
+};
 
-function ParametreSatiri({ parametre, onGuncelle, onVarsayilan, onSil }: SatirProps) {
-  const [duzenle, setDuzenle] = useState(false);
-  const [yeniDeger, setYeniDeger] = useState(parametre.deger);
-  const [yukleniyor, setYukleniyor] = useState(false);
-  const [hata, setHata] = useState<string | null>(null);
+const KATEGORI_RENK: Record<string, string> = {
+  GENEL: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
+  GUVENLIK: 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300',
+  AI: 'bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300',
+  SISTEM: 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300',
+  PLAN: 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300',
+};
 
-  const varsayilandanFarkli = parametre.deger !== parametre.varsayilanDeger;
+export default function SistemParametreleriPage() {
+  const queryClient = useQueryClient();
 
-  const handleKaydet = async () => {
-    try {
-      setYukleniyor(true);
-      setHata(null);
-      await onGuncelle(parametre.id, yeniDeger);
-      setDuzenle(false);
-    } catch {
-      setHata('Güncellenemedi');
-    } finally {
-      setYukleniyor(false);
-    }
-  };
+  const [kategoriFiltre, setKategoriFiltre] = useState('');
+  const [duzenleModal, setDuzenleModal] = useState<SistemParametresiDto | null>(null);
+  const [yeniModal, setYeniModal] = useState(false);
+  const [silOnay, setSilOnay] = useState<SistemParametresiDto | null>(null);
+  const [degerInput, setDegerInput] = useState('');
+  const [yeniForm, setYeniForm] = useState<Partial<SistemParametresiOlusturRequest>>({ tip: 'STRING', kategori: 'GENEL' });
+  const [hata, setHata] = useState('');
 
-  const handleIptal = () => {
-    setYeniDeger(parametre.deger);
-    setDuzenle(false);
-    setHata(null);
-  };
-
-  const handleVarsayilan = async () => {
-    try {
-      setYukleniyor(true);
-      await onVarsayilan(parametre.id);
-      setYeniDeger(parametre.varsayilanDeger);
-    } catch {
-      setHata('Sıfırlanamadı');
-    } finally {
-      setYukleniyor(false);
-    }
-  };
-
-  return (
-    <div className={clsx(
-      'rounded-xl border p-4 transition-colors',
-      varsayilandanFarkli ? 'border-warning/40 bg-warning/5' : 'border-border bg-bg-secondary'
-    )}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <code className="text-sm font-mono font-semibold text-text-primary">{parametre.anahtar}</code>
-            <span className={clsx('rounded-full px-2 py-0.5 text-xs font-medium', TIP_RENK[parametre.tip] ?? 'bg-bg-tertiary text-text-muted')}>
-              {parametre.tip}
-            </span>
-            {!parametre.duzenlenebilir && (
-              <span className="flex items-center gap-1 rounded-full bg-bg-tertiary px-2 py-0.5 text-xs text-text-muted">
-                <Lock className="h-3 w-3" /> Salt okunur
-              </span>
-            )}
-            {varsayilandanFarkli && (
-              <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning">
-                Özelleştirilmiş
-              </span>
-            )}
-          </div>
-          {parametre.aciklama && (
-            <p className="text-xs text-text-muted mb-2">{parametre.aciklama}</p>
-          )}
-
-          {/* Değer alanı */}
-          {duzenle ? (
-            <div className="space-y-2">
-              {parametre.tip === 'BOOLEAN' ? (
-                <div className="flex gap-3">
-                  {['true', 'false'].map((val) => (
-                    <button
-                      key={val}
-                      onClick={() => setYeniDeger(val)}
-                      className={clsx(
-                        'rounded-lg border px-4 py-1.5 text-sm font-medium transition-colors',
-                        yeniDeger === val
-                          ? 'border-accent bg-accent/10 text-accent'
-                          : 'border-border bg-bg-tertiary text-text-secondary hover:border-accent/50'
-                      )}
-                    >
-                      {val === 'true' ? 'Açık (true)' : 'Kapalı (false)'}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <input
-                  type={parametre.tip === 'NUMBER' ? 'number' : 'text'}
-                  value={yeniDeger}
-                  onChange={(e) => setYeniDeger(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-bg-tertiary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
-                  autoFocus
-                />
-              )}
-              {hata && <p className="text-xs text-danger">{hata}</p>}
-              <div className="flex gap-2">
-                <button
-                  onClick={handleKaydet}
-                  disabled={yukleniyor}
-                  className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-hover transition-colors disabled:opacity-60"
-                >
-                  {yukleniyor ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Save className="h-3 w-3" />}
-                  Kaydet
-                </button>
-                <button
-                  onClick={handleIptal}
-                  className="flex items-center gap-1.5 rounded-lg border border-border bg-bg-tertiary px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-border transition-colors"
-                >
-                  <X className="h-3 w-3" /> İptal
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="rounded-lg border border-border bg-bg-tertiary px-3 py-1.5 font-mono text-sm text-text-primary">
-                  {parametre.deger}
-                </span>
-                {varsayilandanFarkli && (
-                  <span className="text-xs text-text-muted">
-                    (Varsayılan: <code className="font-mono">{parametre.varsayilanDeger}</code>)
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Aksiyonlar */}
-        {!duzenle && (
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {parametre.duzenlenebilir && (
-              <button
-                onClick={() => { setDuzenle(true); setYeniDeger(parametre.deger); }}
-                className="rounded-lg p-1.5 text-text-muted hover:bg-accent/10 hover:text-accent transition-colors"
-                title="Düzenle"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-            )}
-            {varsayilandanFarkli && parametre.duzenlenebilir && (
-              <button
-                onClick={handleVarsayilan}
-                disabled={yukleniyor}
-                className="rounded-lg p-1.5 text-text-muted hover:bg-warning/10 hover:text-warning transition-colors"
-                title="Varsayılana sıfırla"
-              >
-                <RotateCcw className="h-4 w-4" />
-              </button>
-            )}
-            <button
-              onClick={() => onSil(parametre.id)}
-              className="rounded-lg p-1.5 text-text-muted hover:bg-danger/10 hover:text-danger transition-colors"
-              title="Sil"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-interface YeniParametreFormProps {
-  onKapat: () => void;
-  onKaydet: (req: SistemParametresiOlusturRequest) => Promise<void>;
-}
-
-function YeniParametreForm({ onKapat, onKaydet }: YeniParametreFormProps) {
-  const [form, setForm] = useState<SistemParametresiOlusturRequest>({
-    anahtar: '',
-    deger: '',
-    varsayilanDeger: '',
-    aciklama: '',
-    tip: 'STRING',
-    kategori: 'GENEL',
+  const { data: parametreler, isLoading, isError } = useQuery({
+    queryKey: ['admin', 'sistem-parametreleri'],
+    queryFn: () => adminService.parametreleriGetir(),
   });
-  const [yukleniyor, setYukleniyor] = useState(false);
-  const [hata, setHata] = useState<string | null>(null);
 
-  const handleKaydet = async () => {
-    if (!form.anahtar || !form.deger || !form.varsayilanDeger) {
-      setHata('Anahtar, değer ve varsayılan değer zorunludur');
-      return;
-    }
-    try {
-      setYukleniyor(true);
-      setHata(null);
-      await onKaydet(form);
-      onKapat();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '';
-      setHata(msg.includes('409') || msg.includes('Conflict') ? 'Bu anahtar zaten mevcut' : 'Parametre eklenemedi');
-    } finally {
-      setYukleniyor(false);
-    }
+  const guncelle = useMutation({
+    mutationFn: ({ id, deger }: { id: number; deger: string }) =>
+      adminService.parametreGuncelle(id, { deger }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'sistem-parametreleri'] });
+      setDuzenleModal(null);
+    },
+    onError: () => setHata('Güncelleme başarısız.'),
+  });
+
+  const varsayilanaGetir = useMutation({
+    mutationFn: (id: number) => adminService.parametreVarsayilanaGetir(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'sistem-parametreleri'] }),
+  });
+
+  const olustur = useMutation({
+    mutationFn: (req: SistemParametresiOlusturRequest) => adminService.parametreOlustur(req),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'sistem-parametreleri'] });
+      setYeniModal(false);
+      setYeniForm({ tip: 'STRING', kategori: 'GENEL' });
+    },
+    onError: () => setHata('Oluşturma başarısız.'),
+  });
+
+  const sil = useMutation({
+    mutationFn: (id: number) => adminService.parametreSil(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'sistem-parametreleri'] });
+      setSilOnay(null);
+    },
+  });
+
+  const duzenleAc = (p: SistemParametresiDto) => {
+    setDegerInput(p.deger);
+    setHata('');
+    setDuzenleModal(p);
   };
 
-  return (
-    <div className="rounded-xl border-2 border-dashed border-accent/40 bg-accent/5 p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="font-semibold text-text-primary">Yeni Parametre Ekle</h3>
-        <button onClick={onKapat} className="rounded-lg p-1 hover:bg-bg-tertiary transition-colors">
-          <X className="h-4 w-4 text-text-muted" />
-        </button>
-      </div>
-      {hata && (
-        <div className="mb-3 flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
-          <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" /> {hata}
-        </div>
-      )}
-      <div className="grid gap-3 md:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-muted">Anahtar *</label>
-          <input
-            type="text"
-            placeholder="ornek.anahtar.adi"
-            value={form.anahtar}
-            onChange={(e) => setForm({ ...form, anahtar: e.target.value })}
-            className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 font-mono text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-muted">Değer *</label>
-          <input
-            type="text"
-            value={form.deger}
-            onChange={(e) => setForm({ ...form, deger: e.target.value })}
-            className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-muted">Varsayılan Değer *</label>
-          <input
-            type="text"
-            value={form.varsayilanDeger}
-            onChange={(e) => setForm({ ...form, varsayilanDeger: e.target.value })}
-            className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-muted">Açıklama</label>
-          <input
-            type="text"
-            value={form.aciklama}
-            onChange={(e) => setForm({ ...form, aciklama: e.target.value })}
-            className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-muted">Tip</label>
-          <select
-            value={form.tip}
-            onChange={(e) => setForm({ ...form, tip: e.target.value as 'STRING' | 'NUMBER' | 'BOOLEAN' })}
-            className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
-          >
-            <option value="STRING">Metin (STRING)</option>
-            <option value="NUMBER">Sayı (NUMBER)</option>
-            <option value="BOOLEAN">Boolean (true/false)</option>
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-text-muted">Kategori</label>
-          <select
-            value={form.kategori}
-            onChange={(e) => setForm({ ...form, kategori: e.target.value as SistemParametresiOlusturRequest['kategori'] })}
-            className="w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
-          >
-            <option value="GENEL">Genel</option>
-            <option value="GUVENLIK">Güvenlik</option>
-            <option value="AI">Yapay Zeka</option>
-            <option value="SISTEM">Sistem</option>
-            <option value="PLAN">Planlar</option>
-          </select>
-        </div>
-      </div>
-      <div className="mt-4 flex gap-3">
-        <button
-          onClick={onKapat}
-          className="rounded-lg border border-border bg-bg-secondary px-4 py-2 text-sm font-medium text-text-secondary hover:bg-bg-tertiary transition-colors"
-        >
-          İptal
-        </button>
-        <button
-          onClick={handleKaydet}
-          disabled={yukleniyor}
-          className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors disabled:opacity-60"
-        >
-          {yukleniyor ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Check className="h-4 w-4" />}
-          Parametre Ekle
-        </button>
-      </div>
-    </div>
+  const filtrelenmis = (parametreler ?? []).filter(p =>
+    kategoriFiltre ? p.kategori === kategoriFiltre : true
   );
-}
 
-export default function AdminSistemParametreleriPage() {
-  const [parametreler, setParametreler] = useState<SistemParametresiDto[]>([]);
-  const [yukleniyor, setYukleniyor] = useState(true);
-  const [hata, setHata] = useState<string | null>(null);
-  const [aktifKategori, setAktifKategori] = useState<Kategori>('HEPSI');
-  const [yeniFormAcik, setYeniFormAcik] = useState(false);
-  const [silId, setSilId] = useState<number | null>(null);
-
-  const veriYukle = useCallback(async () => {
-    try {
-      setYukleniyor(true);
-      setHata(null);
-      const data = await adminService.parametreleriGetir();
-      setParametreler(data);
-    } catch {
-      setHata('Parametreler yüklenemedi');
-    } finally {
-      setYukleniyor(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    veriYukle();
-  }, [veriYukle]);
-
-  const handleGuncelle = async (id: number, deger: string) => {
-    await adminService.parametreGuncelle(id, { deger });
-    await veriYukle();
-  };
-
-  const handleVarsayilan = async (id: number) => {
-    await adminService.parametreVarsayilanaGetir(id);
-    await veriYukle();
-  };
-
-  const handleYeniParametre = async (req: SistemParametresiOlusturRequest) => {
-    await adminService.parametreOlustur(req);
-    await veriYukle();
-  };
-
-  const handleSil = async () => {
-    if (silId === null) return;
-    await adminService.parametreSil(silId);
-    setSilId(null);
-    await veriYukle();
-  };
-
-  const filtrelenmis = aktifKategori === 'HEPSI'
-    ? parametreler
-    : parametreler.filter((p) => p.kategori === aktifKategori);
-
-  const ozellestirilmisSayisi = parametreler.filter((p) => p.deger !== p.varsayilanDeger).length;
+  // Kategoriye göre grupla
+  const gruplar = filtrelenmis.reduce<Record<string, SistemParametresiDto[]>>((acc, p) => {
+    const k = p.kategori;
+    if (!acc[k]) acc[k] = [];
+    acc[k].push(p);
+    return acc;
+  }, {});
 
   return (
-    <PageContainer>
-      <PageHeader
-        baslik="Sistem Parametreleri"
-        altBaslik={`${parametreler.length} parametre${ozellestirilmisSayisi > 0 ? ` • ${ozellestirilmisSayisi} özelleştirilmiş` : ''}`}
-        eylem={
-          <button
-            onClick={() => setYeniFormAcik(true)}
-            className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Yeni Parametre
-          </button>
-        }
-      />
-
-      {hata && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-          <AlertTriangle className="h-4 w-4 flex-shrink-0" /> {hata}
+    <div className="space-y-6">
+      {/* Başlık */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Sistem Parametreleri</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            {filtrelenmis.length} parametre
+          </p>
         </div>
-      )}
-
-      {/* Yeni parametre formu */}
-      {yeniFormAcik && (
-        <div className="mb-6">
-          <YeniParametreForm
-            onKapat={() => setYeniFormAcik(false)}
-            onKaydet={handleYeniParametre}
-          />
-        </div>
-      )}
-
-      {/* Kategori tabları */}
-      <div className="mb-5 flex flex-wrap gap-2">
-        {KATEGORILER.map((k) => {
-          const sayi = k.deger === 'HEPSI'
-            ? parametreler.length
-            : parametreler.filter((p) => p.kategori === k.deger).length;
-          return (
-            <button
-              key={k.deger}
-              onClick={() => setAktifKategori(k.deger)}
-              className={clsx(
-                'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors',
-                aktifKategori === k.deger
-                  ? 'border-accent bg-accent/10 text-accent'
-                  : 'border-border bg-bg-secondary text-text-muted hover:border-accent/50 hover:text-text-secondary'
-              )}
-            >
-              <span>{k.etiket}</span>
-              <span className={clsx(
-                'rounded-full px-1.5 py-0.5 text-xs',
-                aktifKategori === k.deger ? 'bg-accent/20' : 'bg-bg-tertiary'
-              )}>
-                {sayi}
-              </span>
-            </button>
-          );
-        })}
+        <button
+          onClick={() => { setYeniForm({ tip: 'STRING', kategori: 'GENEL' }); setHata(''); setYeniModal(true); }}
+          className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
+        >
+          + Yeni Parametre
+        </button>
       </div>
 
-      {/* Parametre listesi */}
-      {yukleniyor ? (
+      {/* Kategori filtresi */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setKategoriFiltre('')}
+          className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            kategoriFiltre === ''
+              ? 'bg-brand-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300'
+          }`}
+        >
+          Tümü
+        </button>
+        {Object.entries(KATEGORI_ETIKETLER).map(([k, etiket]) => (
+          <button
+            key={k}
+            onClick={() => setKategoriFiltre(k)}
+            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+              kategoriFiltre === k
+                ? 'bg-brand-500 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300'
+            }`}
+          >
+            {etiket}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-accent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-brand-500" />
         </div>
-      ) : filtrelenmis.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <Settings className="mb-3 h-10 w-10 text-text-muted" />
-          <p className="text-sm text-text-muted">Bu kategoride parametre yok</p>
+      ) : isError ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-600 dark:border-red-800 dark:bg-red-950 dark:text-red-400">
+          Parametreler yüklenemedi.
         </div>
       ) : (
-        <div className="space-y-3">
-          {filtrelenmis.map((p) => (
-            <ParametreSatiri
-              key={p.id}
-              parametre={p}
-              onGuncelle={handleGuncelle}
-              onVarsayilan={handleVarsayilan}
-              onSil={setSilId}
-            />
+        <div className="space-y-6">
+          {Object.entries(gruplar).map(([kategori, liste]) => (
+            <div key={kategori}>
+              <div className="mb-3 flex items-center gap-2">
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${KATEGORI_RENK[kategori] ?? KATEGORI_RENK.GENEL}`}>
+                  {KATEGORI_ETIKETLER[kategori] ?? kategori}
+                </span>
+                <span className="text-xs text-gray-400">{liste.length} parametre</span>
+              </div>
+              <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 dark:border-gray-800">
+                      <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Anahtar</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Değer</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Varsayılan</th>
+                      <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Tip</th>
+                      <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">İşlem</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                    {liste.map(p => (
+                      <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                        <td className="px-4 py-3">
+                          <p className="font-mono text-xs font-semibold text-gray-700 dark:text-gray-300">{p.anahtar}</p>
+                          {p.aciklama && (
+                            <p className="mt-0.5 text-xs text-gray-400">{p.aciklama}</p>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="font-mono text-xs text-gray-800 dark:text-white">{p.deger}</span>
+                          {p.deger !== p.varsayilanDeger && (
+                            <span className="ml-2 rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-medium text-orange-600 dark:bg-orange-900 dark:text-orange-300">
+                              değiştirilmiş
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-gray-400">{p.varsayilanDeger}</td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{TIP_ETIKETLER[p.tip] ?? p.tip}</span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {p.duzenlenebilir && (
+                              <button
+                                onClick={() => duzenleAc(p)}
+                                className="rounded-lg px-3 py-1.5 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950 transition-colors"
+                              >
+                                Düzenle
+                              </button>
+                            )}
+                            {p.deger !== p.varsayilanDeger && p.duzenlenebilir && (
+                              <button
+                                onClick={() => varsayilanaGetir.mutate(p.id)}
+                                className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                              >
+                                Sıfırla
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setSilOnay(p)}
+                              className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                            >
+                              Sil
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           ))}
+          {filtrelenmis.length === 0 && (
+            <div className="rounded-2xl border border-gray-200 bg-white py-12 text-center text-gray-400 dark:border-gray-800 dark:bg-gray-900">
+              Bu kategoride parametre yok.
+            </div>
+          )}
         </div>
       )}
 
-      <ConfirmDialog
-        acik={silId !== null}
-        baslik="Parametreyi Sil"
-        mesaj="Bu sistem parametresini silmek istediğinizden emin misiniz?"
-        onayEtiket="Evet, Sil"
-        onOnayla={handleSil}
-        onIptal={() => setSilId(null)}
-      />
-    </PageContainer>
+      {/* Düzenle Modal */}
+      {duzenleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Parametre Düzenle</h2>
+            <p className="mt-1 font-mono text-sm text-gray-500">{duzenleModal.anahtar}</p>
+            {duzenleModal.aciklama && (
+              <p className="mt-1 text-xs text-gray-400">{duzenleModal.aciklama}</p>
+            )}
+            <div className="mt-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Değer</label>
+              {duzenleModal.tip === 'BOOLEAN' ? (
+                <select
+                  value={degerInput}
+                  onChange={e => setDegerInput(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                >
+                  <option value="true">true</option>
+                  <option value="false">false</option>
+                </select>
+              ) : (
+                <input
+                  type={duzenleModal.tip === 'NUMBER' ? 'number' : 'text'}
+                  value={degerInput}
+                  onChange={e => setDegerInput(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                />
+              )}
+              <p className="mt-1 text-xs text-gray-400">Varsayılan: {duzenleModal.varsayilanDeger}</p>
+            </div>
+            {hata && <p className="mt-2 text-sm text-red-500">{hata}</p>}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setDuzenleModal(null)}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+              >
+                İptal
+              </button>
+              <button
+                onClick={() => guncelle.mutate({ id: duzenleModal.id, deger: degerInput })}
+                disabled={guncelle.isPending}
+                className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60 transition-colors"
+              >
+                {guncelle.isPending ? 'Kaydediliyor...' : 'Kaydet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Yeni Parametre Modal */}
+      {yeniModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Yeni Parametre</h2>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Anahtar *</label>
+                <input
+                  type="text"
+                  placeholder="ornek.parametre.adi"
+                  value={yeniForm.anahtar ?? ''}
+                  onChange={e => setYeniForm(f => ({ ...f, anahtar: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Değer *</label>
+                <input
+                  type="text"
+                  value={yeniForm.deger ?? ''}
+                  onChange={e => setYeniForm(f => ({ ...f, deger: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Varsayılan Değer *</label>
+                <input
+                  type="text"
+                  value={yeniForm.varsayilanDeger ?? ''}
+                  onChange={e => setYeniForm(f => ({ ...f, varsayilanDeger: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Açıklama</label>
+                <input
+                  type="text"
+                  value={yeniForm.aciklama ?? ''}
+                  onChange={e => setYeniForm(f => ({ ...f, aciklama: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                />
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Tip</label>
+                  <select
+                    value={yeniForm.tip ?? 'STRING'}
+                    onChange={e => setYeniForm(f => ({ ...f, tip: e.target.value as 'STRING' | 'NUMBER' | 'BOOLEAN' }))}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                  >
+                    <option value="STRING">Metin</option>
+                    <option value="NUMBER">Sayı</option>
+                    <option value="BOOLEAN">Boolean</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Kategori</label>
+                  <select
+                    value={yeniForm.kategori ?? 'GENEL'}
+                    onChange={e => setYeniForm(f => ({ ...f, kategori: e.target.value as SistemParametresiOlusturRequest['kategori'] }))}
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                  >
+                    {Object.entries(KATEGORI_ETIKETLER).map(([k, etiket]) => (
+                      <option key={k} value={k}>{etiket}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            {hata && <p className="mt-2 text-sm text-red-500">{hata}</p>}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setYeniModal(false)}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+              >
+                İptal
+              </button>
+              <button
+                onClick={() => {
+                  if (!yeniForm.anahtar || !yeniForm.deger || !yeniForm.varsayilanDeger) {
+                    setHata('Anahtar, değer ve varsayılan değer zorunludur.');
+                    return;
+                  }
+                  olustur.mutate(yeniForm as SistemParametresiOlusturRequest);
+                }}
+                disabled={olustur.isPending}
+                className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60 transition-colors"
+              >
+                {olustur.isPending ? 'Oluşturuluyor...' : 'Oluştur'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sil Onay */}
+      {silOnay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Parametreyi Sil</h2>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              <code className="font-mono font-semibold">{silOnay.anahtar}</code> parametresi silinecek. Bu işlem geri alınamaz.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setSilOnay(null)}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300"
+              >
+                İptal
+              </button>
+              <button
+                onClick={() => sil.mutate(silOnay.id)}
+                disabled={sil.isPending}
+                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-60 transition-colors"
+              >
+                {sil.isPending ? 'Siliniyor...' : 'Evet, Sil'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,52 +1,56 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/authStore';
-import { useUIStore } from '@/stores/uiStore';
-import { clsx } from 'clsx';
-import { Sidebar } from '@/components/feature/layout/Sidebar';
-import { TopBar } from '@/components/feature/layout/TopBar';
+import { useSidebar } from "@/context/SidebarContext";
+import AppHeader from "@/layout/AppHeader";
+import AppSidebar from "@/layout/AppSidebar";
+import Backdrop from "@/layout/Backdrop";
+import { useAuthStore } from "@/stores/authStore";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
-const Spinner = () => (
-  <div className="min-h-screen bg-bg-primary flex items-center justify-center">
-    <div className="h-10 w-10 animate-spin rounded-full border-4 border-border border-t-accent" />
-  </div>
-);
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const { accessToken } = useAuthStore();
   const router = useRouter();
-  const { accessToken, kullanici } = useAuthStore();
-  const { sidebarAcik } = useUIStore();
   const [mounted, setMounted] = useState(false);
 
+  useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (mounted && !accessToken) router.push("/signin");
+  }, [mounted, accessToken, router]);
 
-  useEffect(() => {
-    if (!mounted) return;
-    if (!accessToken) {
-      router.push('/giris');
-      return;
-    }
-    if (!kullanici?.adminMi) {
-      router.push('/dashboard');
-    }
-  }, [mounted, accessToken, kullanici, router]);
-
-  if (!mounted || !accessToken || !kullanici?.adminMi) {
-    return <Spinner />;
+  if (!mounted || !accessToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-brand-500" />
+      </div>
+    );
   }
 
+  // Dynamic class for main content margin based on sidebar state
+  const mainContentMargin = isMobileOpen
+    ? "ml-0"
+    : isExpanded || isHovered
+    ? "lg:ml-[290px]"
+    : "lg:ml-[90px]";
+
   return (
-    <div className="flex min-h-screen bg-bg-primary">
-      <Sidebar />
-      <div className={clsx('flex flex-1 flex-col transition-all duration-300', 'lg:ml-64')}>
-        <TopBar />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+    <div className="min-h-screen xl:flex">
+      {/* Sidebar and Backdrop */}
+      <AppSidebar />
+      <Backdrop />
+      {/* Main Content Area */}
+      <div
+        className={`flex-1 transition-all  duration-300 ease-in-out ${mainContentMargin}`}
+      >
+        {/* Header */}
+        <AppHeader />
+        {/* Page Content */}
+        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
       </div>
     </div>
   );

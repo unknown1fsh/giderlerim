@@ -9,8 +9,11 @@ import com.scinar.giderlerim.dto.response.SohbetMesajiResponse;
 import com.scinar.giderlerim.dto.response.SohbetOturumResponse;
 import com.scinar.giderlerim.entity.AiSohbetMesaji;
 import com.scinar.giderlerim.entity.AiSohbetOturumu;
+import com.scinar.giderlerim.entity.Butce;
+import com.scinar.giderlerim.entity.Gider;
 import com.scinar.giderlerim.entity.Kullanici;
 import com.scinar.giderlerim.entity.enums.MesajRolu;
+import com.scinar.giderlerim.entity.enums.OdemeYontemi;
 import com.scinar.giderlerim.entity.enums.PlanTuru;
 import com.scinar.giderlerim.exception.KayitBulunamadiException;
 import com.scinar.giderlerim.exception.PlanLimitiAsimException;
@@ -26,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -53,6 +57,7 @@ public class AiSohbetServiceImpl implements AiSohbetService {
     private final RestTemplate restTemplate;
     private final KullaniciRepository kullaniciRepository;
     private final GiderRepository giderRepository;
+    private final ButceRepository butceRepository;
     private final AiSohbetOturumRepository oturumRepository;
     private final AiSohbetMesajiRepository mesajRepository;
 
@@ -137,19 +142,17 @@ public class AiSohbetServiceImpl implements AiSohbetService {
         // Ters çevir (en eski önce)
         Collections.reverse(sonMesajlar);
 
-        // Kullanıcının harcama özetini hazırla
+        // Kullanıcının güncel finansal verilerini hazırla ve system prompt'a ekle
         String finansalBaglamMetni = finansalBaglamHazirla(kullaniciId);
+        String dinamikSistemPrompt = SISTEM_PROMPT + "\n\n" +
+                "=== KULLANICI FİNANSAL DURUMU (GÜNCEL) ===\n" + finansalBaglamMetni;
 
         // Anthropic mesaj formatına çevir
         List<Map<String, String>> mesajListesi = new ArrayList<>();
 
-        // İlk mesajda finansal bağlamı ekle
-        String ilkIcerik = "Bağlam bilgisi:\n" + finansalBaglamMetni + "\n\nKullanıcı: " + request.icerik();
-
-        // Mevcut oturum mesajlarını ekle
+        // Mevcut oturum mesajlarını ekle (en son kullanıcı mesajı hariç)
         for (AiSohbetMesaji mesaj : sonMesajlar) {
             if (mesaj.getId().equals(kullaniciMesaji.getId())) {
-                // En son kullanıcı mesajı zaten bağlamla birlikte ekleneceği için atla
                 continue;
             }
             Map<String, String> mesajMap = new HashMap<>();
@@ -158,21 +161,14 @@ public class AiSohbetServiceImpl implements AiSohbetService {
             mesajListesi.add(mesajMap);
         }
 
-        // Son kullanıcı mesajını bağlamla birlikte ekle
-        if (mesajListesi.isEmpty()) {
-            Map<String, String> sonMesaj = new HashMap<>();
-            sonMesaj.put("role", "user");
-            sonMesaj.put("content", ilkIcerik);
-            mesajListesi.add(sonMesaj);
-        } else {
-            Map<String, String> sonMesaj = new HashMap<>();
-            sonMesaj.put("role", "user");
-            sonMesaj.put("content", request.icerik());
-            mesajListesi.add(sonMesaj);
-        }
+        // Son kullanıcı mesajını ekle
+        Map<String, String> sonMesaj = new HashMap<>();
+        sonMesaj.put("role", "user");
+        sonMesaj.put("content", request.icerik());
+        mesajListesi.add(sonMesaj);
 
-        // Claude API çağrısı
-        String asistanYaniti = claudeApiCagir(mesajListesi);
+        // Claude API çağrısı (dinamik system prompt ile)
+        String asistanYaniti = claudeApiCagir(mesajListesi, dinamikSistemPrompt);
 
         // Asistan yanıtını kaydet
         AiSohbetMesaji asistanMesaji = AiSohbetMesaji.builder()
@@ -212,7 +208,7 @@ public class AiSohbetServiceImpl implements AiSohbetService {
 
     // ========== Yardımcı Metodlar ==========
 
-    private String claudeApiCagir(List<Map<String, String>> mesajlar) {
+    private String claudeApiCagir(List<Map<String, String>> mesajlar, String sistemPrompt) {
         HttpHeaders basliklar = new HttpHeaders();
         basliklar.setContentType(MediaType.APPLICATION_JSON);
         basliklar.set("x-api-key", anthropicConfig.getApiAnahtari());
@@ -221,7 +217,7 @@ public class AiSohbetServiceImpl implements AiSohbetService {
         Map<String, Object> istek = new HashMap<>();
         istek.put("model", anthropicConfig.getModel());
         istek.put("max_tokens", anthropicConfig.getMaxTokens());
-        istek.put("system", SISTEM_PROMPT);
+        istek.put("system", sistemPrompt);
         istek.put("messages", mesajlar);
 
         try {
@@ -252,20 +248,66 @@ public class AiSohbetServiceImpl implements AiSohbetService {
         BigDecimal aylikToplam = giderRepository.findAylikToplam(kullaniciId, mevcutAy, mevcutYil);
         if (aylikToplam == null) aylikToplam = BigDecimal.ZERO;
 
+        long islemSayisi = giderRepository.countByKullaniciIdAndAyAndYil(kullaniciId, mevcutAy, mevcutYil);
         List<Object[]> kategoriToplamlar = giderRepository.findKategoriToplamlar(kullaniciId, mevcutAy, mevcutYil);
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("Mevcut Ay (%d/%d) Özeti:\n", mevcutAy, mevcutYil));
+        sb.append(String.format("=== %d/%d AYI ÖZETİ ===\n", mevcutAy, mevcutYil));
         sb.append(String.format("Toplam harcama: %.2f TL\n", aylikToplam.doubleValue()));
+        sb.append(String.format("İşlem sayısı: %d\n", islemSayisi));
 
+        // Kategori dağılımı
         if (!kategoriToplamlar.isEmpty()) {
-            sb.append("Kategori dağılımı:\n");
-            kategoriToplamlar.forEach(satir -> {
+            sb.append("\n--- KATEGORİ DAĞILIMI ---\n");
+            for (Object[] satir : kategoriToplamlar) {
                 String kategoriAd = (String) satir[1];
                 BigDecimal toplam = (BigDecimal) satir[4];
                 sb.append(String.format("  - %s: %.2f TL\n", kategoriAd, toplam.doubleValue()));
+            }
+        }
+
+        // Bütçe durumu
+        List<Butce> butceler = butceRepository.findByKullaniciIdAndAyAndYilAndDeletedAtIsNull(kullaniciId, mevcutAy, mevcutYil);
+        if (!butceler.isEmpty()) {
+            sb.append("\n--- BÜTÇE DURUMU ---\n");
+            for (Butce butce : butceler) {
+                BigDecimal harcanan = giderRepository.findKategoriAylikToplam(
+                        kullaniciId, butce.getKategori().getId(), mevcutAy, mevcutYil);
+                if (harcanan == null) harcanan = BigDecimal.ZERO;
+                BigDecimal limit = butce.getLimitTutar();
+                int yuzde = limit.compareTo(BigDecimal.ZERO) > 0
+                        ? harcanan.multiply(BigDecimal.valueOf(100)).divide(limit, 0, RoundingMode.HALF_UP).intValue()
+                        : 0;
+                String uyari = yuzde >= 100 ? " ❌ AŞILDI" : (yuzde >= butce.getUyariYuzdesi() ? " ⚠ SINIRA YAKLAŞIYOR" : "");
+                sb.append(String.format("  - %s: %.2f / %.2f TL (%%%d)%s\n",
+                        butce.getKategori().getAd(), harcanan.doubleValue(), limit.doubleValue(), yuzde, uyari));
+            }
+        }
+
+        // Son 10 işlem
+        LocalDate ayBaslangic = LocalDate.of(mevcutYil, mevcutAy, 1);
+        List<Gider> sonIslemler = giderRepository.findSon3AyGiderler(kullaniciId, ayBaslangic);
+        if (!sonIslemler.isEmpty()) {
+            sb.append("\n--- SON 10 İŞLEM ---\n");
+            sonIslemler.stream().limit(10).forEach(g -> {
+                String aciklama = g.getAciklama() != null && !g.getAciklama().isBlank()
+                        ? g.getAciklama() : "-";
+                sb.append(String.format("  - %s | %s | %s | %.2f TL\n",
+                        g.getTarih(), g.getKategori().getAd(), aciklama, g.getTutar().doubleValue()));
             });
         }
+
+        // Ödeme yöntemi dağılımı
+        BigDecimal krediKarti = giderRepository.findAylikToplamByOdemeYontemi(kullaniciId, mevcutAy, mevcutYil, OdemeYontemi.KREDI_KARTI);
+        BigDecimal bankaKarti = giderRepository.findAylikToplamByOdemeYontemi(kullaniciId, mevcutAy, mevcutYil, OdemeYontemi.BANKA_KARTI);
+        BigDecimal nakit = giderRepository.findAylikToplamByOdemeYontemi(kullaniciId, mevcutAy, mevcutYil, OdemeYontemi.NAKIT);
+        if (krediKarti == null) krediKarti = BigDecimal.ZERO;
+        if (bankaKarti == null) bankaKarti = BigDecimal.ZERO;
+        if (nakit == null) nakit = BigDecimal.ZERO;
+
+        sb.append("\n--- ÖDEME YÖNTEMİ ---\n");
+        sb.append(String.format("  Kredi Kartı: %.2f TL | Banka Kartı: %.2f TL | Nakit: %.2f TL\n",
+                krediKarti.doubleValue(), bankaKarti.doubleValue(), nakit.doubleValue()));
 
         return sb.toString();
     }

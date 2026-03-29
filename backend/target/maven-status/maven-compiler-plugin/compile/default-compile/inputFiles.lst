@@ -11,6 +11,7 @@ C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\A
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\config\SecurityConfig.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\admin\AdminIstatistikDto.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\security\JwtAuthFilter.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\enums\DestekOnceligi.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\AiAnalizService.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\KullaniciService.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\GirisRequest.java
@@ -22,9 +23,11 @@ C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\util\SecurityYardimcisi.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\DashboardResponse.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\repository\AiAnalizSonucuRepository.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\DestekTalebiService.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\KategoriOlusturRequest.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\repository\GiderRepository.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\enums\AnalizTuru.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\impl\DestekTalebiServiceImpl.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\KategoriController.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\AuthController.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\ProfilGuncelleRequest.java
@@ -40,6 +43,7 @@ C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\config\A
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\Butce.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\repository\KullaniciRepository.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\AiAnalizSonucu.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\repository\DestekTalebiRepository.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\KayitRequest.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\KategoriResponse.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\AdminService.java
@@ -54,6 +58,7 @@ C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\requ
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\HataResponse.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\SohbetMesajiRequest.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\AdminController.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\DestekTalebiResponse.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\GiderController.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\ApiResponse.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\admin\AdminKullaniciListeDto.java
@@ -63,11 +68,13 @@ C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\e
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\AiSohbetService.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\KategoriGuncelleRequest.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\KategoriHarcamaResponse.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\DestekTalebiOlusturRequest.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\GiderService.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\enums\GirisTuru.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\ButceService.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\KullaniciController.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\UyariController.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\DestekTalebi.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\util\TarihYardimcisi.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\SohbetMesajiResponse.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\enums\ParaBirimi.java
@@ -80,6 +87,7 @@ C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\config\C
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\GiderGuncelleRequest.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\admin\AdminKullaniciGuncelleRequest.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\AiAnalizResponse.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\DestekTalebiController.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\impl\AdminServiceImpl.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\exception\PlanLimitiAsimException.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\repository\CsvYuklemeRepository.java
@@ -95,11 +103,13 @@ C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\S
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\UyariResponse.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\admin\SistemParametresiDto.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\AiSohbetMesaji.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\request\DestekTalebiYanitlaRequest.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\security\KullaniciDetaylariServisi.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\exception\GlobalExceptionHandler.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\UyariService.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\BelgeYuklemeService.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\repository\AiSohbetMesajiRepository.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\config\RateLimitFilter.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\impl\CsvYuklemeServiceImpl.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\impl\AiAnalizServiceImpl.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\enums\YuklemeDurumu.java
@@ -107,8 +117,10 @@ C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\resp
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\AiSohbetController.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\GiderlerimApplication.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\CsvYuklemeResponse.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\enums\DestekKategorisi.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\impl\GiderServiceImpl.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\dto\response\ButceResponse.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\exception\GecersizDosyaException.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\controller\CsvYuklemeController.java
+C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\entity\enums\DestekDurumu.java
 C:\projects_beta\giderlerim\backend\src\main\java\com\scinar\giderlerim\service\impl\BelgeYuklemeServiceImpl.java

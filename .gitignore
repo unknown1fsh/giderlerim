@@ -1,5 +1,26 @@
 node_modules
 .next/
+frontend/out/
+
+# Environment
 .env
 .env.local
 .env*.local
+!.env.example
+
+# Build output
+backend/target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

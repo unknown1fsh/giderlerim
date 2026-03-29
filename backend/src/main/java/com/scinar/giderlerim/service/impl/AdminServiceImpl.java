@@ -7,6 +7,7 @@ import com.scinar.giderlerim.entity.SistemParametresi;
 import com.scinar.giderlerim.entity.enums.PlanTuru;
 import com.scinar.giderlerim.repository.*;
 import com.scinar.giderlerim.service.AdminService;
+import com.scinar.giderlerim.service.DestekTalebiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,6 +36,7 @@ public class AdminServiceImpl implements AdminService {
     private final BelgeYuklemeRepository belgeYuklemeRepository;
     private final UyariRepository uyariRepository;
     private final SistemParametresiRepository sistemParametresiRepository;
+    private final DestekTalebiService destekTalebiService;
 
     @Override
     public ApiResponse<AdminIstatistikDto> getIstatistikler() {
@@ -61,6 +63,9 @@ public class AdminServiceImpl implements AdminService {
         long toplamUyariSayisi = uyarilar.stream().filter(u -> u.getDeletedAt() == null).count();
         long okunmamisUyariSayisi = uyarilar.stream().filter(u -> u.getDeletedAt() == null && Boolean.FALSE.equals(u.getOkunduMu())).count();
 
+        long toplamDestekTalebiSayisi = destekTalebiService.toplamTalepSayisi();
+        long acikDestekTalebiSayisi = destekTalebiService.acikTalepSayisi();
+
         AdminIstatistikDto dto = new AdminIstatistikDto(
                 toplamKullanici, aktifKullanici, silinenKullanici, adminKullanici,
                 freeKullanici, premiumKullanici, ultraKullanici,
@@ -68,7 +73,8 @@ public class AdminServiceImpl implements AdminService {
                 toplamButceSayisi,
                 toplamAiOturumSayisi, toplamAiMesajSayisi,
                 toplamCsvYuklemeSayisi, toplamBelgeYuklemeSayisi,
-                toplamUyariSayisi, okunmamisUyariSayisi
+                toplamUyariSayisi, okunmamisUyariSayisi,
+                toplamDestekTalebiSayisi, acikDestekTalebiSayisi
         );
 
         return ApiResponse.basarili(dto);

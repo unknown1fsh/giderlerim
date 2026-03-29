@@ -29,5 +29,9 @@ public record AdminIstatistikDto(
 
         // Uyarı istatistikleri
         long toplamUyariSayisi,
-        long okunmamisUyariSayisi
+        long okunmamisUyariSayisi,
+
+        // Destek talebi istatistikleri
+        long toplamDestekTalebiSayisi,
+        long acikDestekTalebiSayisi
 ) {}
