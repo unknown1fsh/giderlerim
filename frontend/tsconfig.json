@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@giderlerim/shared/*": [
+        "../packages/shared/*"
       ]
     }
   },

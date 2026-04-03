@@ -121,7 +121,18 @@
       "Bash(ls c:/projects_beta/giderlerim/frontend/next.config.*)",
       "Bash(ls \"c:/projects_beta/giderlerim/frontend/src/app/\\(admin\\)/destek/\")",
       "Bash(ls \"c:/projects_beta/giderlerim/frontend/src/app/\\(admin\\)/admin/destek-talepleri/\")",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(xargs basename:*)",
+      "Bash(head -50 /c/projects_beta/giderlerim/frontend/src/app/\"\\(admin\\)\"/\"ai-koc\"/page.tsx)",
+      "Bash(ls -la /c/projects_beta/giderlerim/mobile/app/\\\\\\(tabs\\\\\\)/)",
+      "Bash(ls -la /c/projects_beta/giderlerim/mobile/app/\\\\\\(tabs\\\\\\)/butceler/)",
+      "Bash(ls -la /c/projects_beta/giderlerim/mobile/app/\\\\\\(tabs\\\\\\)/giderler/)",
+      "Bash(ls -la /c/projects_beta/giderlerim/mobile/app/\\\\\\(tabs\\\\\\)/menu/)",
+      "Read(//c/Users/1FSH/.claude/projects/c--projects-beta-giderlerim/**)",
+      "Bash(ls -la \"c:/projects_beta/giderlerim/mobile/app/\\(tabs\\)/\")",
+      "Bash(find \"c:/projects_beta/giderlerim/frontend/src/app/\\(admin\\)/ai-koc\" -type f)",
+      "Bash(find \"c:/projects_beta/giderlerim/mobile/app/\\(tabs\\)\" -name \"*csv*\" -o -name \"*import*\")",
+      "Bash(ls c:/projects_beta/giderlerim/mobile/app/\\\\\\(tabs\\\\\\)/ai-koc/)"
     ],
     "additionalDirectories": [
       "c:\\projects_beta\\giderlerim\\frontend\\src\\app\\(admin)\\admin"

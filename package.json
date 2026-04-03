@@ -2,12 +2,19 @@
   "name": "giderlerim",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "packages/*",
+    "frontend",
+    "mobile"
+  ],
   "scripts": {
     "dev:frontend": "npm run dev --prefix frontend",
+    "dev:mobile": "npm run start --prefix mobile",
     "dev:backend": "cd backend && mvn spring-boot:run",
     "dev:full": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:all": "concurrently --names \"BACKEND,FRONTEND,MOBILE\" --prefix-colors \"bgBlue.bold,bgGreen.bold,bgMagenta.bold\" \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:mobile\"",
     "install:frontend": "npm install --prefix frontend",
-    "killall": "kill-port 3000 3001 8080"
+    "killall": "kill-port 3000 3001 8080 8081 19000 19001"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

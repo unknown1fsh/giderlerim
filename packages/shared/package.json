@@ -1,0 +1,21 @@
+{
+  "name": "@giderlerim/shared",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "types": "index.ts",
+  "exports": {
+    "./types/*": "./types/*",
+    "./services/*": "./services/*",
+    "./hooks/*": "./hooks/*",
+    "./stores/*": "./stores/*",
+    "./utils/*": "./utils/*"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.40.0",
+    "axios": "^1.7.2",
+    "date-fns": "^3.6.0",
+    "react": "^19.0.0 || ^18.0.0",
+    "zustand": "^4.5.2"
+  }
+}

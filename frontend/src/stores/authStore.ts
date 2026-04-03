@@ -1,50 +1,19 @@
-import { create } from 'zustand';
-import { KullaniciResponse } from '@/types/kullanici.types';
+import { createAuthStore } from '@giderlerim/shared/stores/authStore';
+import { webStorage } from '@/services/apiClient';
 
-interface AuthState {
-  kullanici: KullaniciResponse | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  girisYap: (accessToken: string, refreshToken: string, kullanici: KullaniciResponse) => void;
-  cikisYap: () => void;
-  kullaniciGuncelle: (kullanici: KullaniciResponse) => void;
-  tokenGuncelle: (accessToken: string) => void;
-}
+export const useAuthStore = createAuthStore(webStorage);
 
-const getKullanici = () => {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = sessionStorage.getItem('kullanici');
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
+// Hydrate initial state from sessionStorage on web
+if (typeof window !== 'undefined') {
+  const token = sessionStorage.getItem('accessToken');
+  const refresh = sessionStorage.getItem('refreshToken');
+  const raw = sessionStorage.getItem('kullanici');
+  if (token && raw) {
+    try {
+      const kullanici = JSON.parse(raw);
+      useAuthStore.setState({ accessToken: token, refreshToken: refresh, kullanici });
+    } catch {
+      // ignore parse errors
+    }
   }
-};
-
-export const useAuthStore = create<AuthState>((set) => ({
-  kullanici: getKullanici(),
-  accessToken: typeof window !== 'undefined' ? sessionStorage.getItem('accessToken') : null,
-  refreshToken: typeof window !== 'undefined' ? sessionStorage.getItem('refreshToken') : null,
-
-  girisYap: (accessToken, refreshToken, kullanici) => {
-    sessionStorage.setItem('accessToken', accessToken);
-    sessionStorage.setItem('refreshToken', refreshToken);
-    sessionStorage.setItem('kullanici', JSON.stringify(kullanici));
-    set({ accessToken, refreshToken, kullanici });
-  },
-
-  cikisYap: () => {
-    sessionStorage.clear();
-    set({ accessToken: null, refreshToken: null, kullanici: null });
-  },
-
-  kullaniciGuncelle: (kullanici) => {
-    sessionStorage.setItem('kullanici', JSON.stringify(kullanici));
-    set({ kullanici });
-  },
-
-  tokenGuncelle: (accessToken) => {
-    sessionStorage.setItem('accessToken', accessToken);
-    set({ accessToken });
-  },
-}));
+}

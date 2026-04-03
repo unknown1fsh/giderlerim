@@ -1,11 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { kategoriService } from '@/services/kategoriService';
+import { createKategoriHooks } from '@giderlerim/shared/hooks/useKategoriler';
+import { kategoriService } from '@/services/apiClient';
 
-export function useKategoriler() {
-  return useQuery({
-    queryKey: ['kategoriler'],
-    queryFn: () => kategoriService.listele(),
-    select: (data) => data.data,
-    staleTime: 1000 * 60 * 10,
-  });
-}
+const hooks = createKategoriHooks(kategoriService);
+
+export const useKategoriler = hooks.useKategoriler;

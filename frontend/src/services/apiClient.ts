@@ -1,48 +1,37 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { createApiClient, StorageAdapter, NavigationAdapter } from '@giderlerim/shared/services/createApiClient';
+import { createServices } from '@giderlerim/shared/services/index';
 
-const apiClient = axios.create({
+const webStorage: StorageAdapter = {
+  getItem: (key) => (typeof window !== 'undefined' ? sessionStorage.getItem(key) : null),
+  setItem: (key, value) => { if (typeof window !== 'undefined') sessionStorage.setItem(key, value); },
+  removeItem: (key) => { if (typeof window !== 'undefined') sessionStorage.removeItem(key); },
+  clear: () => { if (typeof window !== 'undefined') sessionStorage.clear(); },
+};
+
+const webNavigation: NavigationAdapter = {
+  navigateToLogin: () => { if (typeof window !== 'undefined') window.location.href = '/signin'; },
+};
+
+const apiClient = createApiClient({
   baseURL: (process.env.NEXT_PUBLIC_API_URL || '') + '/api/v1',
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 30000,
+  storage: webStorage,
+  navigation: webNavigation,
 });
 
-apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = typeof window !== 'undefined' ? sessionStorage.getItem('accessToken') : null;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+export const services = createServices(apiClient);
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      const refreshToken = typeof window !== 'undefined' ? sessionStorage.getItem('refreshToken') : null;
-      if (refreshToken) {
-        try {
-          const response = await axios.post(
-            (process.env.NEXT_PUBLIC_API_URL || '') + '/api/v1/auth/token-yenile',
-            null,
-            { headers: { 'X-Refresh-Token': refreshToken } }
-          );
-          const { accessToken } = response.data.data;
-          sessionStorage.setItem('accessToken', accessToken);
-          if (error.config) {
-            error.config.headers.Authorization = `Bearer ${accessToken}`;
-            return apiClient(error.config);
-          }
-        } catch {
-          sessionStorage.clear();
-          window.location.href = '/signin';
-        }
-      } else {
-        sessionStorage.clear();
-        window.location.href = '/signin';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+export const giderService = services.gider;
+export const authService = services.auth;
+export const dashboardService = services.dashboard;
+export const butceService = services.butce;
+export const kategoriService = services.kategori;
+export const uyariService = services.uyari;
+export const aiAnalizService = services.aiAnaliz;
+export const aiSohbetService = services.aiSohbet;
+export const belgeService = services.belge;
+export const csvService = services.csv;
+export const destekService = services.destek;
+export const adminService = services.admin;
 
+export { webStorage };
 export default apiClient;

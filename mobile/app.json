@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Giderlerim",
+    "slug": "giderlerim",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "giderlerim",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#465FFF"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.scinar.giderlerim",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Fiş ve fatura fotoğrafı çekmek için kamera erişimi gereklidir.",
+        "NSFaceIDUsageDescription": "Biyometrik giriş için Face ID kullanılır."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#465FFF"
+      },
+      "package": "com.scinar.giderlerim",
+      "permissions": [
+        "CAMERA",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-camera",
+      "expo-local-authentication",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#465FFF"
+        }
+      ]
+    ]
+  }
+}
