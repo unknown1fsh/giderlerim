@@ -58,7 +58,9 @@ export default function CsvYuklePage() {
     setHata('');
     setSonDurum(null);
     try {
-      const r = await csvService.dosyaYukle(secilenDosya);
+      const formData = new FormData();
+      formData.append('dosya', secilenDosya);
+      const r = await csvService.dosyaYukle(formData);
       setSonDurum(r.data);
       setSecilenDosya(null);
       if (dosyaInputRef.current) dosyaInputRef.current.value = '';

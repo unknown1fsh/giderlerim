@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
+import path from "path";
+
+/** Depo kökü (frontend/ ve packages/shared/ burada). `next build` çalışma dizini frontend olduğu için cwd üst dizindir. */
+const monorepoRoot = path.resolve(process.cwd(), "..");
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  outputFileTracingRoot: monorepoRoot,
   transpilePackages: ["@giderlerim/shared"],
   webpack(config) {
     config.module.rules.push({
@@ -11,6 +16,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   turbopack: {
+    root: monorepoRoot,
     rules: {
       "*.svg": {
         loaders: ["@svgr/webpack"],

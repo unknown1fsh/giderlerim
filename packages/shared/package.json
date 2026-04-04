@@ -11,11 +11,22 @@
     "./stores/*": "./stores/*",
     "./utils/*": "./utils/*"
   },
+  "dependencies": {
+    "@tanstack/react-query": "^5.40.0",
+    "axios": "^1.7.2",
+    "react": "^19.2.0",
+    "zustand": "^4.5.2"
+  },
   "peerDependencies": {
     "@tanstack/react-query": "^5.40.0",
     "axios": "^1.7.2",
     "date-fns": "^3.6.0",
     "react": "^19.0.0 || ^18.0.0",
     "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3"
   }
 }

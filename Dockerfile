@@ -10,15 +10,18 @@ RUN apk add --no-cache maven && \
     mvn --no-transfer-progress -DskipTests package
 
 # === Stage 2: Frontend Build ===
+# Monorepo düzeni: Next.js Turbopack yalnızca proje kökü altını çözer; frontend ile packages/shared aynı üst dizinde olmalı.
 FROM node:20-alpine AS frontend-build
 
-WORKDIR /app
+WORKDIR /repo
 
-COPY frontend/package*.json ./
+# Önce paylaşılan paket (axios, react-query, zustand burada çözülür)
+COPY packages/shared ./packages/shared/
+RUN cd packages/shared && npm ci --no-workspaces
+
+COPY frontend/package*.json ./frontend/
+WORKDIR /repo/frontend
 RUN npm ci
-
-# tsconfig: @giderlerim/shared -> ../packages/shared (repo köküne göre)
-COPY packages/shared /packages/shared
 
 COPY frontend/ .
 
@@ -35,10 +38,10 @@ WORKDIR /app
 # Backend JAR
 COPY --from=backend-build /app/target/*.jar /app/backend/app.jar
 
-# Frontend standalone
-COPY --from=frontend-build /app/.next/standalone /app/frontend
-COPY --from=frontend-build /app/.next/static /app/frontend/.next/static
-COPY --from=frontend-build /app/public /app/frontend/public
+# Frontend standalone (monorepo izlemede çıktı: .next/standalone/<paket-adı>/)
+COPY --from=frontend-build /repo/frontend/.next/standalone/frontend /app/frontend
+COPY --from=frontend-build /repo/frontend/.next/static /app/frontend/.next/static
+COPY --from=frontend-build /repo/frontend/public /app/frontend/public
 
 # Start script
 COPY start.sh /app/start.sh

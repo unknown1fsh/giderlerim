@@ -78,7 +78,9 @@ function BelgeYukleIcerigi() {
     setHata('');
     setSonDurum(null);
     try {
-      const r = await belgeService.dosyaYukle(secilenDosya);
+      const formData = new FormData();
+      formData.append('dosya', secilenDosya);
+      const r = await belgeService.dosyaYukle(formData);
       setSonDurum(r.data);
       setSecilenDosya(null);
       setOnizleme(null);
