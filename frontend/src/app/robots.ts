@@ -1,15 +1,8 @@
 import type { MetadataRoute } from 'next';
+import { resolvePublicSiteUrl } from '@/lib/siteUrl';
 
 function baseUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
-  if (raw) {
-    try {
-      return new URL(raw).origin;
-    } catch {
-      /* fallthrough */
-    }
-  }
-  return 'https://www.giderlerim.net';
+  return resolvePublicSiteUrl();
 }
 
 export default function robots(): MetadataRoute.Robots {

@@ -1,4 +1,4 @@
-const SITE_FALLBACK = 'https://www.giderlerim.net/#fiyatlandirma';
+const SITE_FALLBACK = 'https://giderlerim.net/#fiyatlandirma';
 
 function trim(v: string | undefined): string | undefined {
   const t = v?.trim();

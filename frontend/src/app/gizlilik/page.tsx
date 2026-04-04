@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Gizlilik politikası',
-  description: 'Giderlerim gizlilik politikası — www.giderlerim.net',
+  description: 'Giderlerim gizlilik politikası — giderlerim.net',
 };
 
 export default function GizlilikPage() {
@@ -14,7 +14,7 @@ export default function GizlilikPage() {
           ← Ana sayfa
         </Link>
         <h1 className="text-3xl font-bold text-white mb-2">Gizlilik politikası</h1>
-        <p className="text-sm text-gray-500 mb-10">Son güncelleme: 5 Nisan 2026 · www.giderlerim.net</p>
+        <p className="text-sm text-gray-500 mb-10">Son güncelleme: 5 Nisan 2026 · giderlerim.net</p>
         <div className="prose prose-invert prose-sm max-w-none space-y-6 text-gray-300">
           <p>
             Giderlerim olarak kişisel verilerinize saygı duyuyoruz. Bu metin, hizmetimizi kullanırken hangi

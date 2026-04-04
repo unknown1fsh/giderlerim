@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import { LandingPage } from '@/components/landing/LandingPage';
+import { resolvePublicSiteUrl } from '@/lib/siteUrl';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://www.giderlerim.net';
+const siteUrl = resolvePublicSiteUrl();
 
 const landingTitle = 'Akıllı harcama takibi';
 const landingDescription =
-  'Giderlerim — harcamalarınızı web ve mobilde yönetin. Bütçe, uyarılar, CSV ve belge içe aktarma, yapay zeka koçu ve analizler. www.giderlerim.net';
+  'Giderlerim — harcamalarınızı web ve mobilde yönetin. Bütçe, uyarılar, CSV ve belge içe aktarma, yapay zeka koçu ve analizler. giderlerim.net';
 
 export const metadata: Metadata = {
   title: landingTitle,

@@ -3,7 +3,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Giriş yap",
-  description: "Giderlerim hesabınıza giriş yapın — www.giderlerim.net",
+  description: "Giderlerim hesabınıza giriş yapın — giderlerim.net",
 };
 
 export default function SignIn() {

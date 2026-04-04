@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Kullanım koşulları',
-  description: 'Giderlerim kullanım koşulları — www.giderlerim.net',
+  description: 'Giderlerim kullanım koşulları — giderlerim.net',
 };
 
 export default function KullanimPage() {
@@ -14,10 +14,10 @@ export default function KullanimPage() {
           ← Ana sayfa
         </Link>
         <h1 className="text-3xl font-bold text-white mb-2">Kullanım koşulları</h1>
-        <p className="text-sm text-gray-500 mb-10">Son güncelleme: 5 Nisan 2026 · www.giderlerim.net</p>
+        <p className="text-sm text-gray-500 mb-10">Son güncelleme: 5 Nisan 2026 · giderlerim.net</p>
         <div className="prose prose-invert prose-sm max-w-none space-y-6 text-gray-300">
           <p>
-            www.giderlerim.net ve Giderlerim mobil uygulamasını kullanarak aşağıdaki koşulları kabul etmiş
+            giderlerim.net ve Giderlerim mobil uygulamasını kullanarak aşağıdaki koşulları kabul etmiş
             sayılırsınız.
           </p>
           <h2 className="text-lg font-semibold text-white mt-8">Hizmetin niteliği</h2>

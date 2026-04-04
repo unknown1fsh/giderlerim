@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/stores/authStore";
+import { isKullaniciProfilCevabi } from "@/lib/authProfile";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -26,14 +27,28 @@ export default function SignUpForm() {
     setLoading(true);
     try {
       const res = await authService.kayitOl({ ad, soyad, email, sifre: password });
-      if (res.data) {
-        const apiKok = process.env.NEXT_PUBLIC_API_URL || "";
-        const profileRes = await fetch(`${apiKok}/api/v1/kullanici/profil`, {
-          headers: { Authorization: `Bearer ${res.data.accessToken}` },
-        }).then((r) => r.json());
-        girisYap(res.data.accessToken, res.data.refreshToken, profileRes.data);
-        router.push("/dashboard");
+      const tokens = res.data;
+      if (!tokens?.accessToken || !tokens.refreshToken) {
+        setError("Kayıt yanıtı geçersiz.");
+        return;
       }
+      const apiKok = process.env.NEXT_PUBLIC_API_URL || "";
+      const profilHttp = await fetch(`${apiKok}/api/v1/kullanici/profil`, {
+        headers: { Authorization: `Bearer ${tokens.accessToken}` },
+      });
+      let profilGovde: unknown;
+      try {
+        profilGovde = await profilHttp.json();
+      } catch {
+        setError("Profil bilgisi okunamadı.");
+        return;
+      }
+      if (!profilHttp.ok || !isKullaniciProfilCevabi(profilGovde)) {
+        setError("Profil bilgisi alınamadı. Giriş yapmayı deneyin.");
+        return;
+      }
+      girisYap(tokens.accessToken, tokens.refreshToken, profilGovde.data);
+      router.push("/dashboard");
     } catch {
       setError("Kayıt sırasında bir hata oluştu. E-posta kullanılıyor olabilir.");
     } finally {

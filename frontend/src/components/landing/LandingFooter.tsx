@@ -12,7 +12,7 @@ export function LandingFooter({ year }: LandingFooterProps) {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <Image src="/images/logo/logo-dark.svg" alt="Giderlerim" width={110} height={26} />
-            <span className="text-sm text-gray-500">www.giderlerim.net</span>
+            <span className="text-sm text-gray-500">giderlerim.net</span>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-gray-500">
             <Link href="/gizlilik" className="hover:text-gray-300 transition-colors">
@@ -29,7 +29,7 @@ export function LandingFooter({ year }: LandingFooterProps) {
             </a>
           </nav>
           <p className="text-xs text-gray-600 text-center lg:text-right">
-            © {year} Giderlerim · www.giderlerim.net
+            © {year} Giderlerim · giderlerim.net
           </p>
         </div>
       </div>

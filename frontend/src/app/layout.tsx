@@ -3,20 +3,20 @@ import './globals.css';
 import 'flatpickr/dist/flatpickr.css';
 import { Metadata } from 'next';
 import RootProviders from './providers';
+import { DEFAULT_PUBLIC_SITE_URL, resolvePublicSiteUrl } from '@/lib/siteUrl';
 
-const siteUrlString =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://www.giderlerim.net';
+const siteUrlString = resolvePublicSiteUrl();
 
 let metadataBase: URL;
 try {
   metadataBase = new URL(siteUrlString);
 } catch {
-  metadataBase = new URL('https://www.giderlerim.net');
+  metadataBase = new URL(DEFAULT_PUBLIC_SITE_URL);
 }
 
 const defaultTitle = 'Giderlerim';
 const defaultDescription =
-  'Harcamalarınızı web ve mobilde takip edin. Bütçe, uyarılar, CSV ve belge ile içe aktarma, yapay zeka harcama koçu ve analizler — www.giderlerim.net';
+  'Harcamalarınızı web ve mobilde takip edin. Bütçe, uyarılar, CSV ve belge ile içe aktarma, yapay zeka harcama koçu ve analizler — giderlerim.net';
 
 export const metadata: Metadata = {
   metadataBase,

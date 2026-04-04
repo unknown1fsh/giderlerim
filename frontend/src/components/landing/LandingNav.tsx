@@ -14,7 +14,7 @@ export function LandingNav() {
               <Image src="/images/logo/logo-dark.svg" alt="Giderlerim" width={130} height={30} priority />
             </Link>
             <span className="hidden sm:inline text-[11px] text-gray-600 font-medium tracking-wide truncate">
-              www.giderlerim.net
+              giderlerim.net
             </span>
           </div>
           <div className="flex items-center gap-1 md:gap-5">
