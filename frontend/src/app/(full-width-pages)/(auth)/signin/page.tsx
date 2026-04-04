@@ -2,8 +2,8 @@ import SignInForm from "@/components/auth/SignInForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Giriş Yap | Giderlerim",
-  description: "Giderlerim uygulamasına giriş yapın.",
+  title: "Giriş yap",
+  description: "Giderlerim hesabınıza giriş yapın — www.giderlerim.net",
 };
 
 export default function SignIn() {

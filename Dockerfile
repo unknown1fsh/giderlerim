@@ -25,7 +25,12 @@ RUN npm ci
 
 COPY frontend/ .
 
-ENV NEXT_PUBLIC_API_URL=""
+# Railway "Build" aşamasında değişken olarak verin (metadata / canonical URL)
+ARG NEXT_PUBLIC_SITE_URL=https://www.giderlerim.net
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+# Boş = tarayıcı aynı origin; Next.js /api/* → Spring proxy (start.sh + next.config rewrites)
+ARG NEXT_PUBLIC_API_URL=
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN npm run build
 
 # === Stage 3: Runtime ===

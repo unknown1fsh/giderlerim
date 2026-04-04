@@ -10,7 +10,7 @@ export default function ProfilEkrani() {
   const kullanici = useAuthStore((s) => s.kullanici);
 
   const handlePlanYukselt = () => {
-    WebBrowser.openBrowserAsync('https://giderlerim.com/pricing');
+    WebBrowser.openBrowserAsync('https://www.giderlerim.net/#fiyatlandirma');
   };
 
   return (

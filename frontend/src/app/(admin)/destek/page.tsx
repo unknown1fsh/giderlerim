@@ -279,7 +279,7 @@ export default function DestekPage() {
 
         <div className="mt-6 border-t border-gray-100 pt-4 dark:border-gray-700">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Daha fazla yardım için <span className="font-medium text-brand-500">destek@giderlerim.com</span> adresine e-posta gönderebilirsiniz.
+            Daha fazla yardım için <span className="font-medium text-brand-500">destek@giderlerim.net</span> adresine e-posta gönderebilirsiniz.
           </p>
         </div>
       </div>

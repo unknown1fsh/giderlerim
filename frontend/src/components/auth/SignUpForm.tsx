@@ -27,10 +27,10 @@ export default function SignUpForm() {
     try {
       const res = await authService.kayitOl({ ad, soyad, email, sifre: password });
       if (res.data) {
-        const profileRes = await fetch(
-          process.env.NEXT_PUBLIC_API_URL + "/api/v1/kullanici/profil",
-          { headers: { Authorization: `Bearer ${res.data.accessToken}` } }
-        ).then((r) => r.json());
+        const apiKok = process.env.NEXT_PUBLIC_API_URL || "";
+        const profileRes = await fetch(`${apiKok}/api/v1/kullanici/profil`, {
+          headers: { Authorization: `Bearer ${res.data.accessToken}` },
+        }).then((r) => r.json());
         girisYap(res.data.accessToken, res.data.refreshToken, profileRes.data);
         router.push("/dashboard");
       }

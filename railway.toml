@@ -1,3 +1,7 @@
+# Ortam değişkenleri Railway Dashboard → Servis → Variables üzerinden tanımlanır.
+# Giriş ve API için zorunlu özet: JWT_SECRET, SPRING_DATASOURCE_*, ALLOWED_ORIGIN, ANTHROPIC_API_KEY
+# Build: NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_API_URL (boş önerilir) — ayrıntı: .env.example
+
 [build]
 dockerfilePath = "Dockerfile"
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Sayfa Bulunamadı | Giderlerim",
+  title: "Sayfa bulunamadı",
   description: "Aradığınız sayfa bulunamadı.",
 };
 
