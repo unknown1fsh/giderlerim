@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { shopierOdemeUrlForPlanKapisi } from '@/config/shopier';
 import { useAuthStore } from '@/stores/authStore';
 import { PlanTuru } from '@/types/kullanici.types';
 
@@ -30,6 +31,10 @@ export default function PlanKapisi({ gerekliPlan, children }: PlanKapisiProps) {
 
   if (yetkiliMi) return <>{children}</>;
 
+  const odemeUrl = shopierOdemeUrlForPlanKapisi(gerekliPlan);
+  const yukseltHref = odemeUrl ?? '/#fiyatlandirma';
+  const disOdeme = Boolean(odemeUrl);
+
   return (
     <div className="relative min-h-[400px] overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
       {/* Blurred background hint */}
@@ -57,15 +62,29 @@ export default function PlanKapisi({ gerekliPlan, children }: PlanKapisiProps) {
           <br />
           Şu anki planınız: <span className="font-medium">{PLAN_GORUNEN_AD[mevcutPlan]}</span>
         </p>
-        <Link
-          href="/#fiyatlandirma"
-          className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
-        >
-          Planı Yükselt
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
-        </Link>
+        {disOdeme ? (
+          <a
+            href={yukseltHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+          >
+            Shopier ile öde
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </a>
+        ) : (
+          <Link
+            href={yukseltHref}
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+          >
+            Planı Yükselt
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </Link>
+        )}
       </div>
     </div>
   );

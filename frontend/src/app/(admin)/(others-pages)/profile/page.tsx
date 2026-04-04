@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { shopierProfilYukseltUrl } from '@/config/shopier';
 import apiClient from '@/services/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import { PlanTuru, ParaBirimi, ProfilGuncelleRequest } from '@/types/kullanici.types';
@@ -63,6 +64,9 @@ export default function ProfilPage() {
 
   if (!kullanici) return null;
 
+  const yukseltUrl = shopierProfilYukseltUrl(kullanici.plan);
+  const yukseltDis = Boolean(yukseltUrl);
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
@@ -80,10 +84,12 @@ export default function ProfilPage() {
         </div>
         {kullanici.plan !== 'ULTRA' && (
           <a
-            href="/#fiyatlandirma"
+            href={yukseltUrl ?? '/#fiyatlandirma'}
+            target={yukseltDis ? '_blank' : undefined}
+            rel={yukseltDis ? 'noopener noreferrer' : undefined}
             className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
           >
-            Yükselt ↑
+            {yukseltDis ? 'Shopier ile yükselt' : 'Yükselt ↑'}
           </a>
         )}
       </div>

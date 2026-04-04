@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { shopierOdemeUrl } from '@/config/shopier';
 import { aiAnalizService } from '@/services/aiService';
 import { AiAnalizResponse } from '@/types/ai.types';
 import { useAuthStore } from '@/stores/authStore';
@@ -146,6 +147,7 @@ export default function AnalizlerPage() {
   const [yil, setYil] = useState(bugun.getFullYear());
 
   const yillar = [yil - 1, yil, yil + 1];
+  const proSatinalUrl = shopierOdemeUrl('proAylik');
 
   return (
     <div className="space-y-6">
@@ -160,7 +162,13 @@ export default function AnalizlerPage() {
         <div className="rounded-xl border border-brand-200 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-900/20">
           <p className="text-sm text-brand-700 dark:text-brand-300">
             <span className="font-semibold">Pro planına</span> geçerek tüm AI analizlere erişin.{' '}
-            <a href="/#fiyatlandirma" className="underline hover:no-underline">Planı incele →</a>
+            {proSatinalUrl ? (
+              <a href={proSatinalUrl} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                Shopier ile satın al →
+              </a>
+            ) : (
+              <a href="/#fiyatlandirma" className="underline hover:no-underline">Planı incele →</a>
+            )}
           </p>
         </div>
       )}

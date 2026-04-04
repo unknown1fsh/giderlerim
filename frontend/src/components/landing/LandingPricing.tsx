@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { CheckIcon, SoonIcon, XIcon } from '@/components/landing/icons';
+import { shopierLandingUrl } from '@/config/shopier';
 
 export function LandingPricing() {
   const [yillik, setYillik] = useState(false);
@@ -12,6 +13,14 @@ export function LandingPricing() {
   const proYillikTasarruf = (99 - proAylik) * 12;
   const ultraYillikTasarruf = (199 - ultraAylik) * 12;
 
+  const proOdemeUrl = shopierLandingUrl('pro', yillik);
+  const ultraOdemeUrl = shopierLandingUrl('ultra', yillik);
+
+  const odemeBtnClass =
+    'block text-center py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-brand-500/30 active:scale-[0.98]';
+  const odemeBtnClassUltra =
+    'block text-center py-3 rounded-xl border border-violet-500/50 bg-violet-500/90 hover:bg-violet-600 text-white text-sm font-semibold transition-all';
+
   return (
     <section id="fiyatlandirma" className="relative py-24 scroll-mt-20 [content-visibility:auto]">
       <div className="absolute inset-0 bg-gradient-to-b from-[#070c18] via-[#0a1020] to-[#050810]" />
@@ -20,8 +29,9 @@ export function LandingPricing() {
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-400 mb-3">Fiyatlandırma</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">İhtiyacınıza göre yükseltin</h2>
           <p className="text-gray-400 max-w-xl mx-auto mb-2">
-            Ücretsiz planla başlayın. Pro ve Ultra için uygulama içi plan yükseltmesi ve ödeme altyapısı hazır
-            olduğunda tamamlanacaktır; şu an tüm katmanlar için net limitler backend tarafında tanımlıdır.
+            Ücretsiz planla başlayın. Pro ve Ultra satın alımları güvenli ödeme için Shopier ödeme linki ile
+            yapılır; ödeme sonrası planınız hesabınıza tanımlanır (otomasyon yoksa kısa süreli manuel işlem).
+            Tüm katmanlar için limitler backend tarafında net tanımlıdır.
           </p>
         </div>
 
@@ -114,12 +124,24 @@ export function LandingPricing() {
                 </li>
               ))}
             </ul>
-            <Link
-              href="/signup"
-              className="block text-center py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-brand-500/30 active:scale-[0.98]"
-            >
-              Ücretsiz hesap oluştur
-            </Link>
+            <div className="flex flex-col gap-2">
+              {proOdemeUrl ? (
+                <a
+                  href={proOdemeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={odemeBtnClass}
+                >
+                  Pro&apos;yu öde (Shopier)
+                </a>
+              ) : null}
+              <Link
+                href="/signup"
+                className="block text-center py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all"
+              >
+                Ücretsiz hesap oluştur
+              </Link>
+            </div>
           </div>
 
           <div className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-7 ring-1 ring-violet-500/20">
@@ -162,12 +184,24 @@ export function LandingPricing() {
                 </li>
               ))}
             </ul>
-            <Link
-              href="/signup"
-              className="block text-center py-3 rounded-xl border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/15 text-white text-sm font-medium transition-all"
-            >
-              Başla
-            </Link>
+            <div className="flex flex-col gap-2">
+              {ultraOdemeUrl ? (
+                <a
+                  href={ultraOdemeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={odemeBtnClassUltra}
+                >
+                  Ultra&apos;yı öde (Shopier)
+                </a>
+              ) : null}
+              <Link
+                href="/signup"
+                className="block text-center py-3 rounded-xl border border-violet-500/30 bg-violet-500/10 hover:bg-violet-500/15 text-white text-sm font-medium transition-all"
+              >
+                Ücretsiz hesap oluştur
+              </Link>
+            </div>
           </div>
         </div>
       </div>

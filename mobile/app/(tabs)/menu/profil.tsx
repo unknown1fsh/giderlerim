@@ -1,8 +1,9 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, Card, Button, useTheme, Divider, Switch } from 'react-native-paper';
+import { Text, Card, Button, useTheme, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import { shopierProfilYukseltUrl } from '../../../lib/shopier';
 import { useAuthStore } from '../../../lib/stores';
 
 export default function ProfilEkrani() {
@@ -10,7 +11,7 @@ export default function ProfilEkrani() {
   const kullanici = useAuthStore((s) => s.kullanici);
 
   const handlePlanYukselt = () => {
-    WebBrowser.openBrowserAsync('https://www.giderlerim.net/#fiyatlandirma');
+    WebBrowser.openBrowserAsync(shopierProfilYukseltUrl(kullanici?.plan));
   };
 
   return (
@@ -34,14 +35,14 @@ export default function ProfilEkrani() {
           </Card.Content>
         </Card>
 
-        {kullanici?.plan === 'FREE' && (
+        {(kullanici?.plan === 'FREE' || kullanici?.plan === 'PREMIUM') && (
           <Button
             mode="contained"
             onPress={handlePlanYukselt}
             style={styles.upgradeButton}
             contentStyle={{ height: 52 }}
           >
-            Premium'a Yukselt
+            {kullanici?.plan === 'PREMIUM' ? "Ultra'ya yukselt" : "Pro'ya yukselt (Shopier)"}
           </Button>
         )}
       </ScrollView>
