@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LandingPageClient } from '@/components/landing/LandingPageClient';
+import { LandingPage } from '@/components/landing/LandingPage';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://www.giderlerim.net';
 
@@ -30,5 +30,5 @@ export const metadata: Metadata = {
 };
 
 export default function HomePage() {
-  return <LandingPageClient />;
+  return <LandingPage />;
 }

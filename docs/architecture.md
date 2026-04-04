@@ -79,3 +79,18 @@ Default deployment platform is Railway (railway.app).
 - Never use hbm2ddl.auto=create, update, or create-drop. Only `validate` or `none` is allowed.
 - Flyway or Liquibase migration files must be hand-written — never auto-generated.
 - Do not suggest or generate automatic schema creation under any circumstances.
+
+### Railway PostgreSQL — Flyway güncellik kontrolü
+
+Üretim şemasının repodaki migration’larla uyumlu olduğunu doğrulamak için (Railway Postgres veya eşdeğer bağlantı):
+
+1. Son migration dosyası `backend/src/main/resources/db/migration/` altında hangi sürümdeyse (ör. `V13__…sql`) bunun uygulanmış olması gerekir.
+2. `psql` veya SQL istemcisi ile:
+
+```sql
+SELECT installed_rank, version, description, success
+FROM flyway_schema_history
+ORDER BY installed_rank;
+```
+
+Son başarılı satır, beklenen son sürümle eşleşmeli. Spring Boot açılışında Flyway etkindir; yeni deploy’da bekleyen script’ler otomatik uygulanır — hata durumunda servis log’larında Flyway mesajı görünür.

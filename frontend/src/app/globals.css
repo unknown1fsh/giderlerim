@@ -540,6 +540,30 @@ span.flatpickr-weekday,
 .animation-delay-2000 { animation-delay: 2s; }
 .animation-delay-4000 { animation-delay: 4s; }
 
+.landing-chart-bar {
+  animation: bar-grow 0.6s ease-out both;
+  animation-delay: var(--bar-delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-chart-bar {
+    animation: none;
+    transform: scaleY(1);
+  }
+
+  .animate-blob,
+  .animate-float,
+  .animate-glow-pulse,
+  .animate-fade-in,
+  .animate-fade-in-up {
+    animation: none !important;
+  }
+
+  .animate-ping {
+    animation: none !important;
+  }
+}
+
 .flatpickr-calendar.static {
   @apply right-0;
 }
