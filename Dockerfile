@@ -17,6 +17,9 @@ WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm ci
 
+# tsconfig: @giderlerim/shared -> ../packages/shared (repo köküne göre)
+COPY packages/shared /packages/shared
+
 COPY frontend/ .
 
 ENV NEXT_PUBLIC_API_URL=""
