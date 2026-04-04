@@ -24,7 +24,8 @@ RUN rm -rf /repo/packages/shared/node_modules/@tanstack \
 
 COPY frontend/package*.json ./frontend/
 WORKDIR /repo/frontend
-RUN npm ci
+# postinstall sadece package*.json varken çalışır; scripts/ henüz yok. Shared zaten yukarıda kuruldu.
+RUN npm ci --ignore-scripts
 
 COPY frontend/ .
 
