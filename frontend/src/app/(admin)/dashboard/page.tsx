@@ -5,6 +5,8 @@ import { format, subMonths } from 'date-fns';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useGiderler } from '@/hooks/useGiderler';
 import { useAuthStore } from '@/stores/authStore';
+import type { KategoriHarcamaResponse } from '@/types/dashboard.types';
+import type { GiderResponse } from '@/types/gider.types';
 
 type Periyt = 'bu-ay' | 'gecen-ay';
 
@@ -121,7 +123,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {dashboard.kategoriDagilimi.map((kat) => (
+                  {dashboard.kategoriDagilimi.map((kat: KategoriHarcamaResponse) => (
                     <div key={kat.kategoriId} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div
@@ -157,7 +159,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {sonGiderler.map((gider) => (
+                  {sonGiderler.map((gider: GiderResponse) => (
                     <div key={gider.id} className="flex items-center justify-between rounded-xl px-1 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       <div className="flex items-center gap-3 min-w-0">
                         <div

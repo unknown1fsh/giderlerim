@@ -28,6 +28,9 @@
       ],
       "@giderlerim/shared/*": [
         "../packages/shared/*"
+      ],
+      "@tanstack/react-query": [
+        "./node_modules/@tanstack/react-query"
       ]
     }
   },

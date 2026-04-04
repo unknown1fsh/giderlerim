@@ -8,7 +8,7 @@ import {
   useUyariTumunuOkundu,
   useUyariSil,
 } from '@/hooks/useUyarilar';
-import { UyariTuru } from '@/types/uyari.types';
+import type { UyariResponse, UyariTuru } from '@/types/uyari.types';
 
 const UYARI_RENK: Record<UyariTuru, string> = {
   BUTCE_ASIMI: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
@@ -43,7 +43,7 @@ export default function UyarilarPage() {
   const tumunuOkundu = useUyariTumunuOkundu();
   const sil = useUyariSil();
 
-  const okunmamisSayisi = uyarilar?.filter(u => !u.okunduMu).length ?? 0;
+  const okunmamisSayisi = uyarilar?.filter((u: UyariResponse) => !u.okunduMu).length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -90,7 +90,7 @@ export default function UyarilarPage() {
               <p className="text-gray-500 dark:text-gray-400">Hiç uyarı yok</p>
             </div>
           ) : (
-            uyarilar.map((u) => (
+            uyarilar.map((u: UyariResponse) => (
               <div
                 key={u.id}
                 className={`flex items-start gap-4 rounded-xl border p-4 transition-colors ${

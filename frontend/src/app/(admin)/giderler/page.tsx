@@ -7,6 +7,7 @@ import { useKategoriler } from '@/hooks/useKategoriler';
 import { giderService } from '@/services/giderService';
 import { useQueryClient } from '@tanstack/react-query';
 import { GiderFiltre, GiderOlusturRequest, GiderResponse, OdemeYontemi } from '@/types/gider.types';
+import type { KategoriResponse } from '@/types/kategori.types';
 import { useAuthStore } from '@/stores/authStore';
 
 const ODEME_YONTEMLERI: { value: OdemeYontemi; label: string }[] = [
@@ -115,7 +116,7 @@ export default function GiderlerPage() {
           className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
         >
           <option value="">Tüm Kategoriler</option>
-          {kategoriler?.map(k => <option key={k.id} value={k.id}>{k.ikon} {k.ad}</option>)}
+          {kategoriler?.map((k: KategoriResponse) => <option key={k.id} value={k.id}>{k.ikon} {k.ad}</option>)}
         </select>
         <input
           type="date"
@@ -184,7 +185,7 @@ export default function GiderlerPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {giderler.map((g) => (
+                  {giderler.map((g: GiderResponse) => (
                     <tr key={g.id} className="border-b border-gray-50 hover:bg-gray-50 dark:border-gray-700/50 dark:hover:bg-gray-700/30 transition-colors">
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-300 whitespace-nowrap">
                         {format(new Date(g.tarih), 'dd.MM.yyyy')}
@@ -276,7 +277,7 @@ export default function GiderlerPage() {
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">Seçin...</option>
-                  {kategoriler?.map(k => <option key={k.id} value={k.id}>{k.ikon} {k.ad}</option>)}
+                  {kategoriler?.map((k: KategoriResponse) => <option key={k.id} value={k.id}>{k.ikon} {k.ad}</option>)}
                 </select>
               </div>
               <div>

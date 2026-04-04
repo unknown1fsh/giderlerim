@@ -4,10 +4,8 @@ import path from "path";
 /** Depo kökü (frontend/ ve packages/shared/ burada). `next build` çalışma dizini frontend olduğu için cwd üst dizindir. */
 const monorepoRoot = path.resolve(process.cwd(), "..");
 
-/** Monorepo: shared paketi kendi node_modules'ünde ikinci bir react-query kurabiliyor; Context farklı kopyada kalır → "No QueryClient set". */
+/** Monorepo: shared altında ikinci @tanstack/react-query → "No QueryClient set". React'a alias vermeyin (SSR/prerender'da çift React riski). */
 const reactQueryPkg = path.resolve(process.cwd(), "node_modules/@tanstack/react-query");
-const reactPkg = path.resolve(process.cwd(), "node_modules/react");
-const reactDomPkg = path.resolve(process.cwd(), "node_modules/react-dom");
 
 /** Turbopack (özellikle Windows) mutlak disk yolunu alias değeri olarak desteklemiyor; kök `monorepoRoot` olduğundan göreli yol verilir. */
 function turboRelative(abs: string): string {
@@ -23,8 +21,6 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       "@tanstack/react-query": reactQueryPkg,
-      react: reactPkg,
-      "react-dom": reactDomPkg,
     };
     config.module.rules.push({
       test: /\.svg$/,
@@ -36,8 +32,6 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
     resolveAlias: {
       "@tanstack/react-query": turboRelative(reactQueryPkg),
-      react: turboRelative(reactPkg),
-      "react-dom": turboRelative(reactDomPkg),
     },
     rules: {
       "*.svg": {

@@ -15,9 +15,12 @@ FROM node:20-alpine AS frontend-build
 
 WORKDIR /repo
 
-# Önce paylaşılan paket (axios, react-query, zustand burada çözülür)
+# Paylaşılan paket kurulur; ardından react / react-query nested kopyaları silinir (tek modül örneği).
 COPY packages/shared ./packages/shared/
 RUN cd packages/shared && npm ci --no-workspaces
+RUN rm -rf /repo/packages/shared/node_modules/@tanstack \
+    /repo/packages/shared/node_modules/react \
+    /repo/packages/shared/node_modules/react-dom
 
 COPY frontend/package*.json ./frontend/
 WORKDIR /repo/frontend

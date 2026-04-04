@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useButceOzetler, useButceEkle, useButceSil, useButceGuncelle } from '@/hooks/useButceler';
 import { useKategoriler } from '@/hooks/useKategoriler';
 import { ButceOzetResponse, ButceOlusturRequest } from '@/types/butce.types';
+import type { KategoriResponse } from '@/types/kategori.types';
 import { useAuthStore } from '@/stores/authStore';
 
 const AY_ADLARI = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -128,7 +129,7 @@ export default function ButcelerPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {ozetler.map((o) => (
+              {ozetler.map((o: ButceOzetResponse) => (
                 <div key={o.butceId} className={`rounded-2xl border bg-white p-5 dark:bg-gray-800 ${
                   o.limitAsildi ? 'border-red-300 dark:border-red-700' : 'border-gray-200 dark:border-gray-700'
                 }`}>
@@ -205,7 +206,7 @@ export default function ButcelerPage() {
                     className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="">Seçin...</option>
-                    {kategoriler?.map(k => <option key={k.id} value={k.id}>{k.ikon} {k.ad}</option>)}
+                    {kategoriler?.map((k: KategoriResponse) => <option key={k.id} value={k.id}>{k.ikon} {k.ad}</option>)}
                   </select>
                 </div>
               )}
