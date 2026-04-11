@@ -20,6 +20,8 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: monorepoRoot,
   transpilePackages: ["@giderlerim/shared"],
   webpack(config) {
+    const frontendModules = path.resolve(process.cwd(), "node_modules");
+    config.resolve.modules = [frontendModules, "node_modules"];
     config.resolve.alias = {
       ...config.resolve.alias,
       "@tanstack/react-query": reactQueryPkg,
