@@ -1,13 +1,20 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, FlatList, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { Text, TextInput, IconButton, useTheme, Button, ActivityIndicator, Chip, Menu } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { services } from '../../../lib/apiClient';
+import { useAuthStore } from '../../../lib/stores';
+import { shopierProfilYukseltUrl } from '../../../lib/shopier';
 import { AiMesajBalonu } from '../../../components/AiMesajBalonu';
 import { SohbetOturumResponse, SohbetMesajiResponse } from '@giderlerim/shared/types/ai.types';
+import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
+import { spacing, radius } from '../../../theme';
 
 export default function AiKocEkrani() {
   const theme = useTheme();
+  const kullanici = useAuthStore((s) => s.kullanici);
+  const plan: PlanTuru = kullanici?.plan ?? 'FREE';
   const flatListRef = useRef<FlatList>(null);
 
   const [oturumlar, setOturumlar] = useState<SohbetOturumResponse[]>([]);
@@ -75,7 +82,6 @@ export default function AiKocEkrani() {
     setMesaj('');
     setGonderiliyor(true);
 
-    // Optimistic: show user message immediately
     const geciciMesaj: SohbetMesajiResponse = {
       id: Date.now(),
       rol: 'KULLANICI',
@@ -85,8 +91,7 @@ export default function AiKocEkrani() {
     setMesajlar((prev) => [...prev, geciciMesaj]);
 
     try {
-      const res = await services.aiSohbet.mesajGonder(oturum.id, gonderilecek);
-      // Refresh all messages to get both user + assistant messages
+      await services.aiSohbet.mesajGonder(oturum.id, gonderilecek);
       await mesajlariGetir(oturum.id);
     } catch {
       setMesajlar((prev) => prev.filter((m) => m.id !== geciciMesaj.id));
@@ -101,6 +106,57 @@ export default function AiKocEkrani() {
     setMenuGorunur(false);
   };
 
+  if (plan === 'FREE') {
+    const yukseltUrl = shopierProfilYukseltUrl(plan);
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.header, { borderBottomColor: theme.colors.outline + '40' }]}>
+          <View style={{ width: 48 }} />
+          <Text
+            variant="titleLarge"
+            style={{ fontWeight: '700', flex: 1, textAlign: 'center', color: theme.colors.onBackground }}
+          >
+            AI Koc
+          </Text>
+          <View style={{ width: 48 }} />
+        </View>
+        <View style={styles.center}>
+          <View style={[styles.lockCircle, { backgroundColor: theme.colors.primaryContainer }]}>
+            <MaterialCommunityIcons name="lock-outline" size={48} color={theme.colors.primary} />
+          </View>
+          <Text
+            variant="headlineSmall"
+            style={{ fontWeight: '700', color: theme.colors.onBackground, marginTop: spacing.xl }}
+          >
+            Pro Plani Gerekiyor
+          </Text>
+          <Text
+            variant="bodyMedium"
+            style={{
+              color: theme.colors.onSurfaceVariant,
+              textAlign: 'center',
+              marginTop: spacing.sm,
+              paddingHorizontal: 40,
+              lineHeight: 22,
+            }}
+          >
+            AI Finansal Koc ozelligini kullanmak icin Pro planina yukseltmeniz gerekiyor.
+          </Text>
+          <Button
+            mode="contained"
+            onPress={() => Linking.openURL(yukseltUrl)}
+            style={{ marginTop: spacing.xxxl, borderRadius: radius.md }}
+            contentStyle={{ height: 48 }}
+            icon="arrow-up-bold-circle-outline"
+            labelStyle={{ fontSize: 16, fontWeight: '600' }}
+          >
+            Pro Planina Yukselt
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (yukleniyor) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -113,14 +169,16 @@ export default function AiKocEkrani() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: theme.colors.outline + '40' }]}>
         <Menu
           visible={menuGorunur}
           onDismiss={() => setMenuGorunur(false)}
           anchor={
             <IconButton
               icon="chat-processing-outline"
+              size={24}
               onPress={() => setMenuGorunur(true)}
+              iconColor={theme.colors.onBackground}
             />
           }
           anchorPosition="bottom"
@@ -146,19 +204,29 @@ export default function AiKocEkrani() {
           )}
         </Menu>
 
-        <Text variant="titleLarge" style={{ fontWeight: '700', flex: 1, textAlign: 'center' }}>
+        <Text
+          variant="titleLarge"
+          style={{ fontWeight: '700', flex: 1, textAlign: 'center', color: theme.colors.onBackground }}
+        >
           AI Koc
         </Text>
 
         <IconButton
           icon="plus-circle-outline"
+          size={24}
           onPress={yeniOturumBaslat}
+          iconColor={theme.colors.primary}
         />
       </View>
 
       {aktifOturum && (
         <View style={styles.oturumBilgi}>
-          <Chip compact icon="chat-outline" style={{ backgroundColor: theme.colors.surfaceVariant }}>
+          <Chip
+            compact
+            icon="chat-outline"
+            style={{ backgroundColor: theme.colors.surfaceVariant }}
+            textStyle={{ fontSize: 12 }}
+          >
             {aktifOturum.baslik || `Sohbet #${aktifOturum.id}`}
           </Chip>
         </View>
@@ -166,21 +234,38 @@ export default function AiKocEkrani() {
 
       {!aktifOturum && mesajlar.length === 0 ? (
         <View style={styles.center}>
-          <Text style={{ fontSize: 48, marginBottom: 16 }}>🤖</Text>
-          <Text variant="titleMedium" style={{ fontWeight: '600', color: theme.colors.onBackground }}>
+          <View style={[styles.robotCircle, { backgroundColor: theme.colors.primaryContainer }]}>
+            <MaterialCommunityIcons
+              name="robot-happy-outline"
+              size={56}
+              color={theme.colors.primary}
+            />
+          </View>
+          <Text
+            variant="titleMedium"
+            style={{ fontWeight: '700', color: theme.colors.onBackground, marginTop: spacing.xl }}
+          >
             AI Finansal Kociniz
           </Text>
           <Text
             variant="bodyMedium"
-            style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center', marginTop: 8, paddingHorizontal: 40 }}
+            style={{
+              color: theme.colors.onSurfaceVariant,
+              textAlign: 'center',
+              marginTop: spacing.sm,
+              paddingHorizontal: 48,
+              lineHeight: 22,
+            }}
           >
             Harcamalariniz hakkinda sorular sorun, butce tavsiyeleri alin ve finansal hedeflerinize ulasin.
           </Text>
           <Button
             mode="contained"
             onPress={yeniOturumBaslat}
-            style={{ marginTop: 24, borderRadius: 12 }}
+            style={{ marginTop: spacing.xxxl, borderRadius: radius.md }}
+            contentStyle={{ height: 48 }}
             icon="chat-plus"
+            labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
             Sohbet Baslat
           </Button>
@@ -193,6 +278,7 @@ export default function AiKocEkrani() {
           renderItem={({ item }) => <AiMesajBalonu mesaj={item} />}
           contentContainerStyle={styles.mesajListesi}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.center}>
               <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
@@ -206,7 +292,7 @@ export default function AiKocEkrani() {
       {gonderiliyor && (
         <View style={styles.typingIndicator}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginLeft: 8 }}>
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginLeft: spacing.sm }}>
             AI dusunuyor...
           </Text>
         </View>
@@ -216,13 +302,14 @@ export default function AiKocEkrani() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.outline }]}>
+        <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.outline + '40' }]}>
           <TextInput
             value={mesaj}
             onChangeText={setMesaj}
             placeholder="Mesajinizi yazin..."
             mode="outlined"
             style={styles.input}
+            outlineStyle={{ borderRadius: radius.xl }}
             dense
             multiline
             maxLength={2000}
@@ -248,30 +335,47 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    minHeight: 56,
+  },
+  robotCircle: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   oturumBilgi: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     flexDirection: 'row',
   },
   mesajListesi: {
-    padding: 16,
+    padding: spacing.lg,
     flexGrow: 1,
   },
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
   inputContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   input: {
     maxHeight: 120,
+    backgroundColor: 'transparent',
   },
 });

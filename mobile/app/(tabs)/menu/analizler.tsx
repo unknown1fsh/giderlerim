@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator, Linking } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, Linking, useWindowDimensions } from 'react-native';
 import { Text, Card, Button, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import type { AxiosError } from 'axios';
 import { services } from '../../../lib/apiClient';
 import { useAuthStore } from '../../../lib/stores';
 import { shopierProfilYukseltUrl } from '../../../lib/shopier';
 import { AiAnalizResponse } from '@giderlerim/shared/types/ai.types';
 import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { spacing, radius } from '../../../theme';
 
 const PLAN_SIRALAMA: Record<PlanTuru, number> = { FREE: 0, PREMIUM: 1, ULTRA: 2 };
 const PLAN_AD: Record<PlanTuru, string> = { FREE: 'Ucretsiz', PREMIUM: 'Pro', ULTRA: 'Ultra' };
@@ -17,12 +19,12 @@ type AnalizTipi = 'harcama' | 'butce' | 'anomali' | 'tasarruf';
 
 const ANALIZ_META: Record<
   AnalizTipi,
-  { baslik: string; gerekliPlan: 'PREMIUM' | 'ULTRA' }
+  { baslik: string; ikon: string; gerekliPlan: 'PREMIUM' | 'ULTRA' }
 > = {
-  harcama: { baslik: 'Harcama Analizi', gerekliPlan: 'PREMIUM' },
-  butce: { baslik: 'Butce Onerisi', gerekliPlan: 'PREMIUM' },
-  anomali: { baslik: 'Anomali Tespiti', gerekliPlan: 'ULTRA' },
-  tasarruf: { baslik: 'Tasarruf Firsatlari', gerekliPlan: 'ULTRA' },
+  harcama: { baslik: 'Harcama Analizi', ikon: 'chart-timeline-variant', gerekliPlan: 'PREMIUM' },
+  butce: { baslik: 'Butce Onerisi', ikon: 'lightbulb-outline', gerekliPlan: 'PREMIUM' },
+  anomali: { baslik: 'Anomali Tespiti', ikon: 'alert-circle-outline', gerekliPlan: 'ULTRA' },
+  tasarruf: { baslik: 'Tasarruf Firsatlari', ikon: 'piggy-bank-outline', gerekliPlan: 'ULTRA' },
 };
 
 function planYetkiliMi(kullaniciPlan: PlanTuru, gerekli: 'PREMIUM' | 'ULTRA'): boolean {
@@ -37,6 +39,7 @@ function apiHataMesaji(e: unknown): string {
 
 export default function AnalizlerEkrani() {
   const theme = useTheme();
+  const { width } = useWindowDimensions();
   const kullanici = useAuthStore((s) => s.kullanici);
   const plan: PlanTuru = kullanici?.plan ?? 'FREE';
 
@@ -47,9 +50,7 @@ export default function AnalizlerEkrani() {
   const analizCalistir = async (tip: AnalizTipi) => {
     const { gerekliPlan } = ANALIZ_META[tip];
     if (!planYetkiliMi(plan, gerekliPlan)) {
-      setHata(
-        `${PLAN_AD[gerekliPlan]} plani gerekli. Mevcut plan: ${PLAN_AD[plan]}.`
-      );
+      setHata(`${PLAN_AD[gerekliPlan]} plani gerekli. Mevcut plan: ${PLAN_AD[plan]}.`);
       setAnaliz(null);
       return;
     }
@@ -83,99 +84,139 @@ export default function AnalizlerEkrani() {
   };
 
   const yukseltUrl = shopierProfilYukseltUrl(plan);
+  const gridItemWidth = (width - spacing.xl * 2 - spacing.md) / 2;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Button onPress={() => router.back()} textColor={theme.colors.onBackground}>Geri</Button>
-        <Text variant="titleLarge" style={{ fontWeight: '700' }}>AI Analizler</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <ScreenHeader baslik="AI Analizler" />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         {plan === 'FREE' && (
-          <Card style={[styles.banner, { backgroundColor: theme.colors.elevation.level1 }]}>
-            <Card.Content>
-              <Text variant="bodySmall" style={{ color: theme.colors.primary }}>
-                Pro planina gecerek harcama analizi ve butce onerisine erisirsiniz. Ultra ile anomali ve tasarruf
-                analizleri acilir.
+          <Card style={[styles.banner, { backgroundColor: theme.colors.primaryContainer }]}>
+            <Card.Content style={{ gap: spacing.sm }}>
+              <Text variant="bodySmall" style={{ color: theme.colors.primary, lineHeight: 20 }}>
+                Pro planina gecerek harcama analizi ve butce onerisine erisirsiniz. Ultra ile anomali ve tasarruf analizleri acilir.
               </Text>
               <Button
                 mode="text"
                 compact
                 onPress={() => Linking.openURL(yukseltUrl)}
-                style={{ marginTop: 4 }}
+                icon="arrow-right"
               >
-                Plani yukselt (Shopier)
+                Plani yukselt
               </Button>
             </Card.Content>
           </Card>
         )}
 
         {plan === 'PREMIUM' && (
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 4 }}>
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
             Ultra plani: Anomali tespiti ve Tasarruf firsatlari.
           </Text>
         )}
 
         <View style={styles.buttonGrid}>
           {(Object.keys(ANALIZ_META) as AnalizTipi[]).map((tip) => {
-            const { baslik, gerekliPlan } = ANALIZ_META[tip];
+            const { baslik, ikon, gerekliPlan } = ANALIZ_META[tip];
             const yetkili = planYetkiliMi(plan, gerekliPlan);
             return (
-              <View key={tip} style={styles.gridCell}>
-                <Button
-                  mode="outlined"
-                  onPress={() => analizCalistir(tip)}
-                  disabled={yukleniyor || !yetkili}
-                  style={[styles.gridBtn, !yetkili && styles.gridBtnDisabled]}
-                >
-                  {baslik}
-                </Button>
-                {!yetkili && (
-                  <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 4, textAlign: 'center' }}>
-                    {PLAN_AD[gerekliPlan]} gerekli
+              <Card
+                key={tip}
+                style={[
+                  styles.gridCard,
+                  {
+                    width: gridItemWidth,
+                    backgroundColor: theme.colors.surface,
+                    opacity: yetkili ? 1 : 0.5,
+                  },
+                ]}
+                onPress={() => !yukleniyor && yetkili && analizCalistir(tip)}
+              >
+                <Card.Content style={styles.gridCardContent}>
+                  <MaterialCommunityIcons
+                    name={ikon as any}
+                    size={28}
+                    color={yetkili ? theme.colors.primary : theme.colors.onSurfaceVariant}
+                  />
+                  <Text
+                    variant="labelMedium"
+                    style={{
+                      fontWeight: '600',
+                      marginTop: spacing.sm,
+                      textAlign: 'center',
+                      color: theme.colors.onSurface,
+                    }}
+                    numberOfLines={2}
+                  >
+                    {baslik}
                   </Text>
-                )}
-              </View>
+                  {!yetkili && (
+                    <Text
+                      variant="labelSmall"
+                      style={{
+                        color: theme.colors.onSurfaceVariant,
+                        marginTop: spacing.xs,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {PLAN_AD[gerekliPlan]} gerekli
+                    </Text>
+                  )}
+                </Card.Content>
+              </Card>
             );
           })}
         </View>
 
         {hata ? (
-          <Text variant="bodySmall" style={{ color: theme.colors.error, marginTop: 8 }}>
+          <Text variant="bodySmall" style={{ color: theme.colors.error }}>
             {hata}
           </Text>
         ) : null}
 
-        {yukleniyor && <ActivityIndicator size="large" style={{ marginTop: 32 }} />}
+        {yukleniyor && <ActivityIndicator size="large" style={{ marginTop: spacing.xxxl }} />}
 
         {analiz && !yukleniyor && (
-          <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-            <Card.Content>
-              <Text variant="titleMedium" style={{ fontWeight: '600', marginBottom: 8 }}>{analiz.ozet}</Text>
+          <Card style={[styles.resultCard, { backgroundColor: theme.colors.surface }]}>
+            <Card.Content style={{ gap: spacing.md }}>
+              <Text variant="titleMedium" style={{ fontWeight: '700', color: theme.colors.onSurface }}>
+                {analiz.ozet}
+              </Text>
 
               {analiz.bulgular.length > 0 && (
-                <>
-                  <Text variant="labelLarge" style={{ marginTop: 12, marginBottom: 4 }}>Bulgular</Text>
+                <View style={{ gap: spacing.xs }}>
+                  <Text variant="labelLarge" style={{ fontWeight: '600', marginTop: spacing.sm }}>
+                    Bulgular
+                  </Text>
                   {analiz.bulgular.map((b, i) => (
-                    <Text key={i} variant="bodySmall" style={{ marginBottom: 4 }}>- {b}</Text>
+                    <Text key={i} variant="bodySmall" style={{ lineHeight: 20, color: theme.colors.onSurface }}>
+                      - {b}
+                    </Text>
                   ))}
-                </>
+                </View>
               )}
 
               {analiz.oneriler.length > 0 && (
-                <>
-                  <Text variant="labelLarge" style={{ marginTop: 12, marginBottom: 4 }}>Oneriler</Text>
+                <View style={{ gap: spacing.xs }}>
+                  <Text variant="labelLarge" style={{ fontWeight: '600', marginTop: spacing.sm }}>
+                    Oneriler
+                  </Text>
                   {analiz.oneriler.map((o, i) => (
-                    <Text key={i} variant="bodySmall" style={{ marginBottom: 4 }}>- {o}</Text>
+                    <Text key={i} variant="bodySmall" style={{ lineHeight: 20, color: theme.colors.onSurface }}>
+                      - {o}
+                    </Text>
                   ))}
-                </>
+                </View>
               )}
 
-              <Text variant="bodySmall" style={{ color: theme.colors.primary, marginTop: 12, fontWeight: '600' }}>
-                Oncelikli Eylem: {analiz.oncelikliEylem}
-              </Text>
+              <View style={[styles.actionBadge, { backgroundColor: theme.colors.primaryContainer }]}>
+                <Text variant="labelMedium" style={{ color: theme.colors.primary, fontWeight: '600' }}>
+                  Oncelikli Eylem: {analiz.oncelikliEylem}
+                </Text>
+              </View>
             </Card.Content>
           </Card>
         )}
@@ -186,12 +227,38 @@ export default function AnalizlerEkrani() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
-  content: { padding: 16, gap: 16 },
-  banner: { borderRadius: 12 },
-  buttonGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  gridCell: { width: '47%' },
-  gridBtn: { borderRadius: 12 },
-  gridBtnDisabled: { opacity: 0.45 },
-  card: { borderRadius: 16 },
+  content: {
+    padding: spacing.xl,
+    gap: spacing.lg,
+    paddingBottom: 40,
+  },
+  banner: {
+    borderRadius: radius.md,
+  },
+  buttonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  gridCard: {
+    borderRadius: radius.md,
+    elevation: 1,
+  },
+  gridCardContent: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.md,
+    minHeight: 110,
+    justifyContent: 'center',
+  },
+  resultCard: {
+    borderRadius: radius.lg,
+    elevation: 2,
+  },
+  actionBadge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.sm,
+    marginTop: spacing.sm,
+  },
 });

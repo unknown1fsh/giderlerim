@@ -1,6 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { SohbetMesajiResponse } from '@giderlerim/shared/types/ai.types';
+import { spacing, radius } from '../theme';
 
 interface Props {
   mesaj: SohbetMesajiResponse;
@@ -27,8 +28,8 @@ export function AiMesajBalonu({ mesaj }: Props) {
         style={{
           color: kullaniciMi
             ? theme.colors.onPrimary
-            : theme.colors.onSurfaceVariant,
-          lineHeight: 22,
+            : theme.colors.onSurface,
+          lineHeight: 24,
         }}
       >
         {mesaj.icerik}
@@ -39,9 +40,10 @@ export function AiMesajBalonu({ mesaj }: Props) {
           color: kullaniciMi
             ? theme.colors.onPrimary
             : theme.colors.onSurfaceVariant,
-          opacity: 0.6,
-          marginTop: 4,
+          opacity: 0.7,
+          marginTop: spacing.sm,
           alignSelf: kullaniciMi ? 'flex-end' : 'flex-start',
+          fontSize: 11,
         }}
       >
         {new Date(mesaj.createdAt).toLocaleTimeString('tr-TR', {
@@ -56,17 +58,17 @@ export function AiMesajBalonu({ mesaj }: Props) {
 const styles = StyleSheet.create({
   container: {
     maxWidth: '80%',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 16,
-    marginVertical: 4,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: radius.xl,
+    marginVertical: spacing.xs,
   },
   kullanici: {
     alignSelf: 'flex-end',
-    borderBottomRightRadius: 4,
+    borderBottomRightRadius: spacing.xs,
   },
   asistan: {
     alignSelf: 'flex-start',
-    borderBottomLeftRadius: 4,
+    borderBottomLeftRadius: spacing.xs,
   },
 });

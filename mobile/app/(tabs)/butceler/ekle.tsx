@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
 import { Text, TextInput, Button, useTheme, HelperText } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useButceEkle, useKategoriler } from '../../../lib/hooks';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { spacing, radius } from '../../../theme';
 
 export default function ButceEkleEkrani() {
   const theme = useTheme();
+  const { width } = useWindowDimensions();
   const { data: kategoriler } = useKategoriler();
   const ekle = useButceEkle();
   const now = new Date();
@@ -35,16 +38,18 @@ export default function ButceEkleEkrani() {
     }
   };
 
+  const chipMinWidth = Math.max(90, (width - spacing.xl * 2 - spacing.sm * 3) / 3);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.header}>
-          <Button onPress={() => router.back()} textColor={theme.colors.onBackground}>Geri</Button>
-          <Text variant="titleLarge" style={{ fontWeight: '700' }}>Butce Ekle</Text>
-          <View style={{ width: 60 }} />
-        </View>
+      <ScreenHeader baslik="Butce Ekle" />
 
-        <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={styles.form}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <Text variant="labelLarge" style={styles.sectionLabel}>Kategori</Text>
           <View style={styles.chipContainer}>
             {kategoriler?.map((kat) => (
@@ -53,7 +58,7 @@ export default function ButceEkleEkrani() {
                 mode={secilenKategori === kat.id ? 'contained' : 'outlined'}
                 onPress={() => setSecilenKategori(kat.id)}
                 compact
-                style={styles.chip}
+                style={[styles.chip, { minWidth: chipMinWidth }]}
                 labelStyle={{ fontSize: 12 }}
               >
                 {kat.ikon} {kat.ad}
@@ -67,6 +72,9 @@ export default function ButceEkleEkrani() {
             onChangeText={setLimitTutar}
             keyboardType="decimal-pad"
             mode="outlined"
+            left={<TextInput.Icon icon="currency-try" />}
+            style={styles.input}
+            outlineStyle={{ borderRadius: radius.md }}
           />
 
           <TextInput
@@ -75,6 +83,9 @@ export default function ButceEkleEkrani() {
             onChangeText={setUyariYuzdesi}
             keyboardType="number-pad"
             mode="outlined"
+            left={<TextInput.Icon icon="percent" />}
+            style={styles.input}
+            outlineStyle={{ borderRadius: radius.md }}
           />
 
           {hata ? <HelperText type="error" visible>{hata}</HelperText> : null}
@@ -86,6 +97,7 @@ export default function ButceEkleEkrani() {
             disabled={ekle.isPending}
             style={styles.saveButton}
             contentStyle={{ height: 52 }}
+            labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
             Kaydet
           </Button>
@@ -97,10 +109,27 @@ export default function ButceEkleEkrani() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
-  form: { padding: 20, gap: 16 },
-  sectionLabel: { fontWeight: '600' },
-  chipContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderRadius: 20 },
-  saveButton: { marginTop: 8, borderRadius: 12 },
+  form: {
+    padding: spacing.xl,
+    gap: spacing.lg,
+    paddingBottom: 40,
+  },
+  sectionLabel: {
+    fontWeight: '600',
+  },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  chip: {
+    borderRadius: radius.xl,
+  },
+  input: {
+    backgroundColor: 'transparent',
+  },
+  saveButton: {
+    marginTop: spacing.sm,
+    borderRadius: radius.md,
+  },
 });

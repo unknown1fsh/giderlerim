@@ -1,6 +1,6 @@
 /**
  * Shopier sabit ödeme linkleri — kök .env / Railway’de NEXT_PUBLIC_SHOPIER_* tanımlayın.
- * Boş bırakılırsa arayüz #fiyatlandirma veya mevcut fallback’e döner.
+ * Boş bırakılırsa girişli kullanıcı panelde /plan sayfasına yönlendirilir (kayıt odaklı landing yerine).
  */
 export type ShopierPlanKey = 'proAylik' | 'proYillik' | 'ultraAylik' | 'ultraYillik';
 

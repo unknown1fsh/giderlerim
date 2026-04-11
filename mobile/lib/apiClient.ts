@@ -2,8 +2,7 @@ import { createApiClient } from '@giderlerim/shared/services/createApiClient';
 import { createServices } from '@giderlerim/shared/services/index';
 import { mobileStorage } from './storage';
 import { router } from 'expo-router';
-
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8081/api/v1';
+import { API_BASE_URL } from './apiBaseUrl';
 
 const mobileNavigation = {
   navigateToLogin: () => {
@@ -17,5 +16,6 @@ const apiClient = createApiClient({
   navigation: mobileNavigation,
 });
 
+export { API_BASE_URL };
 export const services = createServices(apiClient);
 export default apiClient;

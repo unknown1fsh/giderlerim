@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sharedModules = path.resolve(__dirname, '../../packages/shared/node_modules');
 
-for (const name of ['@tanstack', 'react', 'react-dom']) {
+for (const name of ['@tanstack', 'react', 'react-dom', 'use-sync-external-store']) {
   const target = path.join(sharedModules, name);
   if (existsSync(target)) {
     rmSync(target, { recursive: true, force: true });

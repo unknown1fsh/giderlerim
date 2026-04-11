@@ -4,14 +4,22 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { CheckIcon, SoonIcon, XIcon } from '@/components/landing/icons';
 import { shopierLandingUrl } from '@/config/shopier';
+import {
+  FIYAT_PRO_AYLIK_YILLIK_PAKETTE,
+  FIYAT_ULTRA_AYLIK_YILLIK_PAKETTE,
+  proGosterimAylikFiyat,
+  ultraGosterimAylikFiyat,
+  proYillikTasarrufTl,
+  ultraYillikTasarrufTl,
+} from '@/lib/planFiyatlari';
 
 export function LandingPricing() {
   const [yillik, setYillik] = useState(false);
 
-  const proAylik = yillik ? 79 : 99;
-  const ultraAylik = yillik ? 159 : 199;
-  const proYillikTasarruf = (99 - proAylik) * 12;
-  const ultraYillikTasarruf = (199 - ultraAylik) * 12;
+  const proAylik = proGosterimAylikFiyat(yillik);
+  const ultraAylik = ultraGosterimAylikFiyat(yillik);
+  const proYillikTasarruf = proYillikTasarrufTl();
+  const ultraYillikTasarruf = ultraYillikTasarrufTl();
 
   const proOdemeUrl = shopierLandingUrl('pro', yillik);
   const ultraOdemeUrl = shopierLandingUrl('ultra', yillik);
@@ -102,7 +110,7 @@ export function LandingPricing() {
               {yillik ? (
                 <p className="text-xs text-green-400 mt-1">Yıllık ödemede {proYillikTasarruf} ₺ tasarruf</p>
               ) : (
-                <p className="text-xs text-gray-500 mt-1">Yıllık: ₺{79 * 12} /yıl (-20%)</p>
+                <p className="text-xs text-gray-500 mt-1">Yıllık: ₺{FIYAT_PRO_AYLIK_YILLIK_PAKETTE * 12} /yıl (-20%)</p>
               )}
             </div>
             <ul className="space-y-3 flex-1 mb-8">
@@ -163,7 +171,7 @@ export function LandingPricing() {
               {yillik ? (
                 <p className="text-xs text-green-400 mt-1">Yıllık ödemede {ultraYillikTasarruf} ₺ tasarruf</p>
               ) : (
-                <p className="text-xs text-gray-500 mt-1">Yıllık: ₺{159 * 12} /yıl (-20%)</p>
+                <p className="text-xs text-gray-500 mt-1">Yıllık: ₺{FIYAT_ULTRA_AYLIK_YILLIK_PAKETTE * 12} /yıl (-20%)</p>
               )}
             </div>
             <ul className="space-y-3 flex-1 mb-8">

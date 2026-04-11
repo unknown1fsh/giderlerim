@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Image, FlatList } from 'react-native';
+import { View, StyleSheet, Image, FlatList, useWindowDimensions } from 'react-native';
 import { Text, Button, Card, useTheme, ActivityIndicator, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import { fisResmiCek, galeridenSec } from '../../../lib/camera';
 import { services } from '../../../lib/apiClient';
 import { BelgeYuklemeResponse } from '@giderlerim/shared/services/belgeService';
 import { useQueryClient } from '@tanstack/react-query';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { spacing, radius } from '../../../theme';
 
 export default function BelgeYukleEkrani() {
   const theme = useTheme();
+  const { width } = useWindowDimensions();
   const queryClient = useQueryClient();
   const [resimUri, setResimUri] = useState<string | null>(null);
   const [yukleniyor, setYukleniyor] = useState(false);
@@ -116,34 +118,49 @@ export default function BelgeYukleEkrani() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Button onPress={() => router.back()} textColor={theme.colors.onBackground}>Geri</Button>
-        <Text variant="titleLarge" style={{ fontWeight: '700' }}>Belge Yukle</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <ScreenHeader baslik="Belge Yukle" />
 
       <FlatList
         data={gecmis}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
-            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 12 }}>
+            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, lineHeight: 22, marginBottom: spacing.lg }}>
               Fis, fatura veya belge fotografi cekin. AI otomatik olarak giderleri tanimlayip kaydeder.
             </Text>
 
             <View style={styles.buttonRow}>
-              <Button mode="contained" onPress={handleKamera} style={styles.actionBtn} icon="camera" disabled={yukleniyor}>
+              <Button
+                mode="contained"
+                onPress={handleKamera}
+                style={styles.actionBtn}
+                icon="camera"
+                disabled={yukleniyor}
+                contentStyle={{ height: 48 }}
+              >
                 Kamera
               </Button>
-              <Button mode="outlined" onPress={handleGaleri} style={styles.actionBtn} icon="image" disabled={yukleniyor}>
+              <Button
+                mode="outlined"
+                onPress={handleGaleri}
+                style={styles.actionBtn}
+                icon="image"
+                disabled={yukleniyor}
+                contentStyle={{ height: 48 }}
+              >
                 Galeri
               </Button>
             </View>
 
             {resimUri && (
               <Card style={[styles.preview, { backgroundColor: theme.colors.surface }]}>
-                <Image source={{ uri: resimUri }} style={styles.image} resizeMode="contain" />
+                <Image
+                  source={{ uri: resimUri }}
+                  style={[styles.image, { height: width * 0.7 }]}
+                  resizeMode="contain"
+                />
               </Card>
             )}
 
@@ -156,6 +173,7 @@ export default function BelgeYukleEkrani() {
                 style={styles.uploadBtn}
                 contentStyle={{ height: 52 }}
                 icon="upload"
+                labelStyle={{ fontSize: 16, fontWeight: '600' }}
               >
                 Yukle ve Tara
               </Button>
@@ -164,15 +182,15 @@ export default function BelgeYukleEkrani() {
             {yukleniyor && durum?.durum === 'ISLENIYOR' && (
               <View style={styles.durumContainer}>
                 <ActivityIndicator size="small" color={theme.colors.primary} />
-                <Text variant="bodyMedium" style={{ marginLeft: 12, color: theme.colors.onSurfaceVariant }}>
-                  Belge taranıyor...
+                <Text variant="bodyMedium" style={{ marginLeft: spacing.md, color: theme.colors.onSurfaceVariant }}>
+                  Belge taraniyor...
                 </Text>
               </View>
             )}
 
             {durum && durum.durum !== 'ISLENIYOR' && (
               <Card style={[styles.sonucCard, { backgroundColor: theme.colors.surface }]}>
-                <Card.Content style={{ gap: 8 }}>
+                <Card.Content style={{ gap: spacing.sm }}>
                   <View style={styles.durumRow}>
                     <Text variant="labelLarge" style={{ fontWeight: '700' }}>Durum:</Text>
                     <Text variant="bodyMedium" style={{ color: getDurumRenk(durum.durum), fontWeight: '600' }}>
@@ -194,15 +212,15 @@ export default function BelgeYukleEkrani() {
             )}
 
             {hata ? (
-              <Text variant="bodySmall" style={{ color: theme.colors.error, marginTop: 8, textAlign: 'center' }}>
+              <Text variant="bodySmall" style={{ color: theme.colors.error, marginTop: spacing.sm, textAlign: 'center' }}>
                 {hata}
               </Text>
             ) : null}
 
             {gecmis.length > 0 && (
               <>
-                <Divider style={{ marginTop: 24, marginBottom: 12 }} />
-                <Text variant="titleMedium" style={{ fontWeight: '600', marginBottom: 8 }}>
+                <Divider style={{ marginTop: spacing.xxl, marginBottom: spacing.md }} />
+                <Text variant="titleMedium" style={{ fontWeight: '700', marginBottom: spacing.md }}>
                   Gecmis Yuklemeler
                 </Text>
               </>
@@ -213,17 +231,19 @@ export default function BelgeYukleEkrani() {
           <Card style={[styles.gecmisCard, { backgroundColor: theme.colors.surface }]}>
             <Card.Content style={styles.gecmisContent}>
               <View style={{ flex: 1 }}>
-                <Text variant="bodyMedium" numberOfLines={1}>{item.dosyaAdi}</Text>
-                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                <Text variant="bodyMedium" numberOfLines={1} style={{ color: theme.colors.onSurface }}>
+                  {item.dosyaAdi}
+                </Text>
+                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
                   {new Date(item.createdAt).toLocaleDateString('tr-TR')}
                 </Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text variant="labelSmall" style={{ color: getDurumRenk(item.durum), fontWeight: '600' }}>
+                <Text variant="labelSmall" style={{ color: getDurumRenk(item.durum), fontWeight: '700' }}>
                   {getDurumMetin(item.durum)}
                 </Text>
                 {item.islenenSatir > 0 && (
-                  <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                  <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
                     {item.islenenSatir} gider
                   </Text>
                 )}
@@ -231,10 +251,10 @@ export default function BelgeYukleEkrani() {
             </Card.Content>
           </Card>
         )}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListEmptyComponent={
           gecmisYukleniyor ? (
-            <ActivityIndicator size="small" style={{ marginTop: 16 }} />
+            <ActivityIndicator size="small" style={{ marginTop: spacing.lg }} />
           ) : null
         }
       />
@@ -244,16 +264,52 @@ export default function BelgeYukleEkrani() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
-  content: { padding: 20 },
-  buttonRow: { flexDirection: 'row', gap: 12 },
-  actionBtn: { flex: 1, borderRadius: 12 },
-  preview: { marginTop: 16, borderRadius: 16, overflow: 'hidden' },
-  image: { width: '100%', height: 300 },
-  uploadBtn: { marginTop: 16, borderRadius: 12 },
-  durumContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, justifyContent: 'center' },
-  sonucCard: { marginTop: 16, borderRadius: 16 },
-  durumRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  gecmisCard: { borderRadius: 12 },
-  gecmisContent: { flexDirection: 'row', alignItems: 'center' },
+  content: {
+    padding: spacing.xl,
+    paddingBottom: 40,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  actionBtn: {
+    flex: 1,
+    borderRadius: radius.md,
+  },
+  preview: {
+    marginTop: spacing.lg,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+  },
+  uploadBtn: {
+    marginTop: spacing.lg,
+    borderRadius: radius.md,
+  },
+  durumContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    justifyContent: 'center',
+  },
+  sonucCard: {
+    marginTop: spacing.lg,
+    borderRadius: radius.lg,
+  },
+  durumRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  gecmisCard: {
+    borderRadius: radius.md,
+    elevation: 1,
+  },
+  gecmisContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
 });

@@ -19,6 +19,25 @@ const fontConfig = {
   labelSmall: { fontFamily: 'System', fontWeight: '500' as const },
 };
 
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+} as const;
+
+export const radius = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 28,
+  full: 9999,
+} as const;
+
 export const lightTheme = {
   ...MD3LightTheme,
   colors: {
@@ -30,11 +49,20 @@ export const lightTheme = {
     error: TEMA_RENKLERI.error,
     background: '#FFFFFF',
     surface: '#F9FAFB',
-    surfaceVariant: '#F3F4F6',
+    surfaceVariant: '#F0F1F3',
     onPrimary: '#FFFFFF',
     onBackground: '#111928',
     onSurface: '#111928',
+    onSurfaceVariant: '#4B5563',
     outline: '#D1D5DB',
+    surfaceDisabled: '#E5E7EB',
+    elevation: {
+      ...MD3LightTheme.colors.elevation,
+      level0: '#FFFFFF',
+      level1: '#F9FAFB',
+      level2: '#F3F4F6',
+      level3: '#E5E7EB',
+    },
   },
   fonts: configureFonts({ config: fontConfig }),
 };
@@ -48,13 +76,22 @@ export const darkTheme = {
     secondary: TEMA_RENKLERI.brand[300],
     secondaryContainer: TEMA_RENKLERI.brand[950],
     error: TEMA_RENKLERI.error,
-    background: '#1A1A2E',
-    surface: '#1F2937',
-    surfaceVariant: '#374151',
+    background: '#0F172A',
+    surface: '#1E293B',
+    surfaceVariant: '#334155',
     onPrimary: '#FFFFFF',
-    onBackground: '#F9FAFB',
-    onSurface: '#F9FAFB',
-    outline: '#4B5563',
+    onBackground: '#F1F5F9',
+    onSurface: '#F1F5F9',
+    onSurfaceVariant: '#94A3B8',
+    outline: '#475569',
+    surfaceDisabled: '#1E293B',
+    elevation: {
+      ...MD3DarkTheme.colors.elevation,
+      level0: '#0F172A',
+      level1: '#1E293B',
+      level2: '#334155',
+      level3: '#475569',
+    },
   },
   fonts: configureFonts({ config: fontConfig }),
 };

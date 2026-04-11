@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Text, TextInput, Button, useTheme, HelperText } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { services } from '../../lib/apiClient';
+import { apiHataMesaji } from '../../lib/apiError';
 import { useAuthStore } from '../../lib/stores';
+import { spacing, radius } from '../../theme';
 
 export default function KayitEkrani() {
   const theme = useTheme();
@@ -19,11 +23,11 @@ export default function KayitEkrani() {
 
   const handleKayit = async () => {
     if (!ad || !soyad || !email || !sifre) {
-      setHata('Tüm alanları doldurun.');
+      setHata('Tum alanlari doldurun.');
       return;
     }
-    if (sifre.length < 6) {
-      setHata('Şifre en az 6 karakter olmalıdır.');
+    if (sifre.length < 8) {
+      setHata('Sifre en az 8 karakter olmalidir.');
       return;
     }
     setHata('');
@@ -37,28 +41,36 @@ export default function KayitEkrani() {
         kullaniciGuncelle(profilRes.data);
       } catch {}
       router.replace('/(tabs)');
-    } catch (err: any) {
-      setHata(err.response?.data?.message || 'Kayıt başarısız. Lütfen tekrar deneyin.');
+    } catch (err: unknown) {
+      setHata(apiHataMesaji(err, 'Kayit basarisiz. Lutfen tekrar deneyin.'));
     } finally {
       setYukleniyor(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.container, { backgroundColor: theme.colors.background }]}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.header}>
+          <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}>
+            <MaterialCommunityIcons
+              name="account-plus-outline"
+              size={48}
+              color={theme.colors.primary}
+            />
+          </View>
           <Text variant="headlineLarge" style={[styles.title, { color: theme.colors.primary }]}>
             Giderlerim
           </Text>
           <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
-            Yeni hesap oluşturun
+            Yeni hesap olusturun
           </Text>
         </View>
 
@@ -69,14 +81,16 @@ export default function KayitEkrani() {
               value={ad}
               onChangeText={setAd}
               mode="outlined"
-              style={styles.halfInput}
+              style={[styles.halfInput, styles.input]}
+              outlineStyle={{ borderRadius: radius.md }}
             />
             <TextInput
               label="Soyad"
               value={soyad}
               onChangeText={setSoyad}
               mode="outlined"
-              style={styles.halfInput}
+              style={[styles.halfInput, styles.input]}
+              outlineStyle={{ borderRadius: radius.md }}
             />
           </View>
 
@@ -89,10 +103,12 @@ export default function KayitEkrani() {
             autoComplete="email"
             mode="outlined"
             left={<TextInput.Icon icon="email-outline" />}
+            style={styles.input}
+            outlineStyle={{ borderRadius: radius.md }}
           />
 
           <TextInput
-            label="Şifre"
+            label="Sifre"
             value={sifre}
             onChangeText={setSifre}
             secureTextEntry={sifreGizli}
@@ -104,7 +120,12 @@ export default function KayitEkrani() {
                 onPress={() => setSifreGizli(!sifreGizli)}
               />
             }
+            style={styles.input}
+            outlineStyle={{ borderRadius: radius.md }}
           />
+          <HelperText type="info" padding="normal">
+            En az 8 karakter.
+          </HelperText>
 
           {hata ? (
             <HelperText type="error" visible>
@@ -119,23 +140,25 @@ export default function KayitEkrani() {
             disabled={yukleniyor}
             style={styles.button}
             contentStyle={styles.buttonContent}
+            labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
-            Kayıt Ol
+            Kayit Ol
           </Button>
 
           <View style={styles.linkRow}>
             <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-              Zaten hesabınız var mı?{' '}
+              Zaten hesabiniz var mi?{' '}
             </Text>
             <Link href="/(auth)/giris">
-              <Text variant="bodyMedium" style={{ color: theme.colors.primary, fontWeight: '600' }}>
-                Giriş Yap
+              <Text variant="bodyMedium" style={{ color: theme.colors.primary, fontWeight: '700' }}>
+                Giris Yap
               </Text>
             </Link>
           </View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -143,30 +166,41 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    padding: spacing.xxl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
-    gap: 8,
+    marginBottom: 48,
+    gap: spacing.sm,
+  },
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
   },
   title: {
     fontWeight: '700',
     fontSize: 32,
   },
   form: {
-    gap: 16,
+    gap: spacing.lg,
   },
   row: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   halfInput: {
     flex: 1,
   },
+  input: {
+    backgroundColor: 'transparent',
+  },
   button: {
-    marginTop: 8,
-    borderRadius: 12,
+    marginTop: spacing.sm,
+    borderRadius: radius.md,
   },
   buttonContent: {
     height: 52,
@@ -174,6 +208,6 @@ const styles = StyleSheet.create({
   linkRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 16,
+    marginTop: spacing.xl,
   },
 });

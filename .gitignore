@@ -2,6 +2,11 @@ node_modules
 .next/
 frontend/out/
 
+# Expo (cihaz geçmişi / yerel dev ayarları)
+.expo/
+mobile/.expo/
+mobile/.expo-export-check/
+
 # Environment
 .env
 .env.local

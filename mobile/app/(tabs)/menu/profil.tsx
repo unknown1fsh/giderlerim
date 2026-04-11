@@ -1,10 +1,12 @@
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Card, Button, useTheme, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { shopierProfilYukseltUrl } from '../../../lib/shopier';
 import { useAuthStore } from '../../../lib/stores';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { spacing, radius } from '../../../theme';
 
 export default function ProfilEkrani() {
   const theme = useTheme();
@@ -16,22 +18,41 @@ export default function ProfilEkrani() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Button onPress={() => router.back()} textColor={theme.colors.onBackground}>Geri</Button>
-        <Text variant="titleLarge" style={{ fontWeight: '700' }}>Profil</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <ScreenHeader baslik="Profil" />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.avatarSection}>
+          <View style={[styles.avatar, { backgroundColor: theme.colors.primaryContainer }]}>
+            <MaterialCommunityIcons
+              name="account"
+              size={48}
+              color={theme.colors.primary}
+            />
+          </View>
+          <Text variant="titleLarge" style={{ fontWeight: '700', color: theme.colors.onSurface, marginTop: spacing.md }}>
+            {kullanici?.ad} {kullanici?.soyad}
+          </Text>
+          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: spacing.xs }}>
+            {kullanici?.email}
+          </Text>
+        </View>
+
         <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Card.Content>
-            <DetailRow label="Ad" value={`${kullanici?.ad || ''} ${kullanici?.soyad || ''}`} />
-            <Divider style={{ marginVertical: 8 }} />
-            <DetailRow label="Email" value={kullanici?.email || ''} />
-            <Divider style={{ marginVertical: 8 }} />
-            <DetailRow label="Plan" value={kullanici?.plan || 'FREE'} />
-            <Divider style={{ marginVertical: 8 }} />
-            <DetailRow label="Para Birimi" value={kullanici?.paraBirimi || 'TRY'} />
+          <Card.Content style={styles.cardContent}>
+            <DetailRow
+              label="Ad Soyad"
+              value={`${kullanici?.ad || ''} ${kullanici?.soyad || ''}`}
+              theme={theme}
+            />
+            <Divider style={{ marginVertical: spacing.md }} />
+            <DetailRow label="Email" value={kullanici?.email || ''} theme={theme} />
+            <Divider style={{ marginVertical: spacing.md }} />
+            <DetailRow label="Plan" value={kullanici?.plan || 'FREE'} theme={theme} />
+            <Divider style={{ marginVertical: spacing.md }} />
+            <DetailRow label="Para Birimi" value={kullanici?.paraBirimi || 'TRY'} theme={theme} />
           </Card.Content>
         </Card>
 
@@ -41,8 +62,10 @@ export default function ProfilEkrani() {
             onPress={handlePlanYukselt}
             style={styles.upgradeButton}
             contentStyle={{ height: 52 }}
+            icon="arrow-up-bold"
+            labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
-            {kullanici?.plan === 'PREMIUM' ? "Ultra'ya yukselt" : "Pro'ya yukselt (Shopier)"}
+            {kullanici?.plan === 'PREMIUM' ? "Ultra'ya yukselt" : "Pro'ya yukselt"}
           </Button>
         )}
       </ScrollView>
@@ -50,20 +73,59 @@ export default function ProfilEkrani() {
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailRow({ label, value, theme }: { label: string; value: string; theme: any }) {
   return (
     <View style={styles.detailRow}>
-      <Text variant="bodyMedium" style={{ color: '#6B7280' }}>{label}</Text>
-      <Text variant="bodyMedium" style={{ fontWeight: '500' }}>{value}</Text>
+      <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+        {label}
+      </Text>
+      <Text
+        variant="bodyMedium"
+        style={{ fontWeight: '600', color: theme.colors.onSurface }}
+        numberOfLines={1}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
-  content: { padding: 16, gap: 16 },
-  card: { borderRadius: 16 },
-  detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  upgradeButton: { borderRadius: 12 },
+  content: {
+    padding: spacing.xl,
+    gap: spacing.lg,
+    paddingBottom: 40,
+  },
+  avatarSection: {
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+  },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  card: {
+    borderRadius: radius.lg,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  cardContent: {
+    padding: spacing.xl,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 36,
+  },
+  upgradeButton: {
+    borderRadius: radius.md,
+  },
 });

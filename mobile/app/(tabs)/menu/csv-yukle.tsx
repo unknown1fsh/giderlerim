@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, Button, Card, useTheme, ActivityIndicator, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { services } from '../../../lib/apiClient';
 import { CsvYuklemeResponse } from '@giderlerim/shared/services/csvService';
 import { useQueryClient } from '@tanstack/react-query';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { spacing, radius } from '../../../theme';
 
 export default function CsvYukleEkrani() {
   const theme = useTheme();
@@ -113,44 +114,44 @@ export default function CsvYukleEkrani() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Button onPress={() => router.back()} textColor={theme.colors.onBackground}>Geri</Button>
-        <Text variant="titleLarge" style={{ fontWeight: '700' }}>CSV Yukle</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <ScreenHeader baslik="CSV Yukle" />
 
       <FlatList
         data={gecmis}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
-            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 16 }}>
+            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, lineHeight: 22, marginBottom: spacing.lg }}>
               CSV dosyanizi secin. Dosyada tarih, tutar, aciklama ve odeme yontemi sutunlari otomatik olarak tanimlanir.
             </Text>
 
             <Button
               mode="contained"
               onPress={handleDosyaSec}
-              icon="file-upload"
+              icon="file-upload-outline"
               disabled={yukleniyor}
               loading={yukleniyor && !durum}
               style={styles.selectBtn}
               contentStyle={{ height: 52 }}
+              labelStyle={{ fontSize: 16, fontWeight: '600' }}
             >
               CSV Dosya Sec
             </Button>
 
             {secilenDosya && (
-              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 8, textAlign: 'center' }}>
-                Secilen: {secilenDosya}
-              </Text>
+              <View style={[styles.fileBadge, { backgroundColor: theme.colors.surfaceVariant }]}>
+                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }} numberOfLines={1}>
+                  Secilen: {secilenDosya}
+                </Text>
+              </View>
             )}
 
             {yukleniyor && durum?.durum === 'ISLENIYOR' && (
               <View style={styles.durumContainer}>
                 <ActivityIndicator size="small" color={theme.colors.primary} />
-                <Text variant="bodyMedium" style={{ marginLeft: 12, color: theme.colors.onSurfaceVariant }}>
+                <Text variant="bodyMedium" style={{ marginLeft: spacing.md, color: theme.colors.onSurfaceVariant }}>
                   CSV isleniyor...
                 </Text>
               </View>
@@ -158,7 +159,7 @@ export default function CsvYukleEkrani() {
 
             {durum && durum.durum !== 'ISLENIYOR' && (
               <Card style={[styles.sonucCard, { backgroundColor: theme.colors.surface }]}>
-                <Card.Content style={{ gap: 8 }}>
+                <Card.Content style={{ gap: spacing.sm }}>
                   <View style={styles.durumRow}>
                     <Text variant="labelLarge" style={{ fontWeight: '700' }}>Durum:</Text>
                     <Text variant="bodyMedium" style={{ color: getDurumRenk(durum.durum), fontWeight: '600' }}>
@@ -180,15 +181,15 @@ export default function CsvYukleEkrani() {
             )}
 
             {hata ? (
-              <Text variant="bodySmall" style={{ color: theme.colors.error, marginTop: 8, textAlign: 'center' }}>
+              <Text variant="bodySmall" style={{ color: theme.colors.error, marginTop: spacing.sm, textAlign: 'center' }}>
                 {hata}
               </Text>
             ) : null}
 
             {gecmis.length > 0 && (
               <>
-                <Divider style={{ marginTop: 24, marginBottom: 12 }} />
-                <Text variant="titleMedium" style={{ fontWeight: '600', marginBottom: 8 }}>
+                <Divider style={{ marginTop: spacing.xxl, marginBottom: spacing.md }} />
+                <Text variant="titleMedium" style={{ fontWeight: '700', marginBottom: spacing.md }}>
                   Gecmis Yuklemeler
                 </Text>
               </>
@@ -199,25 +200,27 @@ export default function CsvYukleEkrani() {
           <Card style={[styles.gecmisCard, { backgroundColor: theme.colors.surface }]}>
             <Card.Content style={styles.gecmisContent}>
               <View style={{ flex: 1 }}>
-                <Text variant="bodyMedium" numberOfLines={1}>{item.dosyaAdi}</Text>
-                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                <Text variant="bodyMedium" numberOfLines={1} style={{ color: theme.colors.onSurface }}>
+                  {item.dosyaAdi}
+                </Text>
+                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
                   {new Date(item.createdAt).toLocaleDateString('tr-TR')}
                 </Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text variant="labelSmall" style={{ color: getDurumRenk(item.durum), fontWeight: '600' }}>
+                <Text variant="labelSmall" style={{ color: getDurumRenk(item.durum), fontWeight: '700' }}>
                   {getDurumMetin(item.durum)}
                 </Text>
-                <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
                   {item.islenenSatir} / {item.toplamSatir}
                 </Text>
               </View>
             </Card.Content>
           </Card>
         )}
-        ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListEmptyComponent={
-          gecmisYukleniyor ? <ActivityIndicator size="small" style={{ marginTop: 16 }} /> : null
+          gecmisYukleniyor ? <ActivityIndicator size="small" style={{ marginTop: spacing.lg }} /> : null
         }
       />
     </SafeAreaView>
@@ -226,12 +229,42 @@ export default function CsvYukleEkrani() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
-  content: { padding: 20 },
-  selectBtn: { borderRadius: 12 },
-  durumContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, justifyContent: 'center' },
-  sonucCard: { marginTop: 16, borderRadius: 16 },
-  durumRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  gecmisCard: { borderRadius: 12 },
-  gecmisContent: { flexDirection: 'row', alignItems: 'center' },
+  content: {
+    padding: spacing.xl,
+    paddingBottom: 40,
+  },
+  selectBtn: {
+    borderRadius: radius.md,
+  },
+  fileBadge: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.sm,
+    alignSelf: 'center',
+  },
+  durumContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    justifyContent: 'center',
+  },
+  sonucCard: {
+    marginTop: spacing.lg,
+    borderRadius: radius.lg,
+  },
+  durumRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  gecmisCard: {
+    borderRadius: radius.md,
+    elevation: 1,
+  },
+  gecmisContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
 });

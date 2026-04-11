@@ -2,6 +2,10 @@
   "name": "giderlerim",
   "version": "1.0.0",
   "private": true,
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
   "workspaces": [
     "packages/*",
     "frontend",
@@ -14,10 +18,16 @@
     "dev:full": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:all": "concurrently --names \"BACKEND,FRONTEND,MOBILE\" --prefix-colors \"bgBlue.bold,bgGreen.bold,bgMagenta.bold\" \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:mobile\"",
     "install:frontend": "npm install --prefix frontend",
-    "killall": "kill-port 3000 3001 8080 8081 19000 19001"
+    "killall": "kill-port 3000 3001 8080 8081 19000 19001",
+    "verify:mobile": "npm run verify -w giderlerim-mobile"
   },
   "devDependencies": {
+    "ajv": "^8.18.0",
     "concurrently": "^8.2.2",
     "kill-port": "^2.0.1"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   }
 }

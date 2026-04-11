@@ -22,6 +22,7 @@
       }
     },
     "android": {
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#465FFF"
@@ -44,7 +45,8 @@
           "icon": "./assets/notification-icon.png",
           "color": "#465FFF"
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }

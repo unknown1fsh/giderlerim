@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { shopierProfilYukseltUrl } from '@/config/shopier';
@@ -82,16 +83,24 @@ export default function ProfilPage() {
             {PLAN_AD[kullanici.plan]}
           </span>
         </div>
-        {kullanici.plan !== 'ULTRA' && (
-          <a
-            href={yukseltUrl ?? '/#fiyatlandirma'}
-            target={yukseltDis ? '_blank' : undefined}
-            rel={yukseltDis ? 'noopener noreferrer' : undefined}
-            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
-          >
-            {yukseltDis ? 'Shopier ile yükselt' : 'Yükselt ↑'}
-          </a>
-        )}
+        {kullanici.plan !== 'ULTRA' &&
+          (yukseltDis ? (
+            <a
+              href={yukseltUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+            >
+              Shopier ile yükselt
+            </a>
+          ) : (
+            <Link
+              href="/plan"
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 transition-colors"
+            >
+              Planları görüntüle
+            </Link>
+          ))}
       </div>
 
       {/* Profil formu */}

@@ -8,6 +8,7 @@ import {
   BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
+  DollarLineIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
@@ -69,6 +70,11 @@ const navItems: NavItem[] = [
     icon: <FileIcon />,
     name: "Belge Yükle",
     path: "/belge-yukle",
+  },
+  {
+    icon: <DollarLineIcon />,
+    name: "Plan",
+    path: "/plan",
   },
   {
     icon: <UserCircleIcon />,

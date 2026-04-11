@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React, { useState } from 'react';
 import { shopierOdemeUrl } from '@/config/shopier';
 import { aiAnalizService } from '@/services/aiService';
@@ -163,11 +164,19 @@ export default function AnalizlerPage() {
           <p className="text-sm text-brand-700 dark:text-brand-300">
             <span className="font-semibold">Pro planına</span> geçerek tüm AI analizlere erişin.{' '}
             {proSatinalUrl ? (
-              <a href={proSatinalUrl} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
-                Shopier ile satın al →
-              </a>
+              <>
+                <a href={proSatinalUrl} target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">
+                  Shopier ile satın al →
+                </a>
+                {' · '}
+                <Link href="/plan" className="underline hover:no-underline">
+                  Tüm plan seçenekleri
+                </Link>
+              </>
             ) : (
-              <a href="/#fiyatlandirma" className="underline hover:no-underline">Planı incele →</a>
+              <Link href="/plan" className="underline hover:no-underline">
+                Planları incele →
+              </Link>
             )}
           </p>
         </div>

@@ -32,7 +32,7 @@ export default function PlanKapisi({ gerekliPlan, children }: PlanKapisiProps) {
   if (yetkiliMi) return <>{children}</>;
 
   const odemeUrl = shopierOdemeUrlForPlanKapisi(gerekliPlan);
-  const yukseltHref = odemeUrl ?? '/#fiyatlandirma';
+  const planSayfasi = '/plan';
   const disOdeme = Boolean(odemeUrl);
 
   return (
@@ -62,29 +62,39 @@ export default function PlanKapisi({ gerekliPlan, children }: PlanKapisiProps) {
           <br />
           Şu anki planınız: <span className="font-medium">{PLAN_GORUNEN_AD[mevcutPlan]}</span>
         </p>
-        {disOdeme ? (
-          <a
-            href={yukseltHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
-          >
-            Shopier ile öde
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </a>
-        ) : (
-          <Link
-            href={yukseltHref}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
-          >
-            Planı Yükselt
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
-        )}
+        <div className="flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+          {disOdeme ? (
+            <>
+              <a
+                href={odemeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+              >
+                Shopier ile öde
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </a>
+              <Link
+                href={planSayfasi}
+                className="text-sm font-medium text-brand-600 underline hover:no-underline dark:text-brand-400"
+              >
+                Tüm plan seçenekleri
+              </Link>
+            </>
+          ) : (
+            <Link
+              href={planSayfasi}
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+            >
+              Plan seç ve satın al
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

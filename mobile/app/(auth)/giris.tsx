@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Text, TextInput, Button, useTheme, HelperText } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { services } from '../../lib/apiClient';
+import { apiHataMesaji } from '../../lib/apiError';
 import { useAuthStore } from '../../lib/stores';
+import { spacing, radius } from '../../theme';
 
 export default function GirisEkrani() {
   const theme = useTheme();
@@ -17,7 +21,7 @@ export default function GirisEkrani() {
 
   const handleGiris = async () => {
     if (!email || !sifre) {
-      setHata('Email ve şifre gereklidir.');
+      setHata('Email ve sifre gereklidir.');
       return;
     }
     setHata('');
@@ -26,34 +30,41 @@ export default function GirisEkrani() {
       const response = await services.auth.girisYap({ email, sifre });
       const { accessToken, refreshToken } = response.data;
       girisYap(accessToken, refreshToken, {} as any);
-      // Fetch user profile after login
       try {
         const profilRes = await services.auth.beniBul();
         kullaniciGuncelle(profilRes.data);
       } catch {}
       router.replace('/(tabs)');
-    } catch (err: any) {
-      setHata(err.response?.data?.message || 'Giriş başarısız. Lütfen tekrar deneyin.');
+    } catch (err: unknown) {
+      setHata(apiHataMesaji(err, 'Giris basarisiz. Lutfen tekrar deneyin.'));
     } finally {
       setYukleniyor(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.container, { backgroundColor: theme.colors.background }]}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.header}>
+          <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}>
+            <MaterialCommunityIcons
+              name="wallet-outline"
+              size={48}
+              color={theme.colors.primary}
+            />
+          </View>
           <Text variant="headlineLarge" style={[styles.title, { color: theme.colors.primary }]}>
             Giderlerim
           </Text>
           <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
-            Hesabınıza giriş yapın
+            Hesabiniza giris yapin
           </Text>
         </View>
 
@@ -67,10 +78,12 @@ export default function GirisEkrani() {
             autoComplete="email"
             mode="outlined"
             left={<TextInput.Icon icon="email-outline" />}
+            style={styles.input}
+            outlineStyle={{ borderRadius: radius.md }}
           />
 
           <TextInput
-            label="Şifre"
+            label="Sifre"
             value={sifre}
             onChangeText={setSifre}
             secureTextEntry={sifreGizli}
@@ -82,6 +95,8 @@ export default function GirisEkrani() {
                 onPress={() => setSifreGizli(!sifreGizli)}
               />
             }
+            style={styles.input}
+            outlineStyle={{ borderRadius: radius.md }}
           />
 
           {hata ? (
@@ -97,23 +112,25 @@ export default function GirisEkrani() {
             disabled={yukleniyor}
             style={styles.button}
             contentStyle={styles.buttonContent}
+            labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
-            Giriş Yap
+            Giris Yap
           </Button>
 
           <View style={styles.linkRow}>
             <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-              Hesabınız yok mu?{' '}
+              Hesabiniz yok mu?{' '}
             </Text>
             <Link href="/(auth)/kayit">
-              <Text variant="bodyMedium" style={{ color: theme.colors.primary, fontWeight: '600' }}>
-                Kayıt Ol
+              <Text variant="bodyMedium" style={{ color: theme.colors.primary, fontWeight: '700' }}>
+                Kayit Ol
               </Text>
             </Link>
           </View>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -121,23 +138,34 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    padding: spacing.xxl,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
-    gap: 8,
+    marginBottom: 48,
+    gap: spacing.sm,
+  },
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
   },
   title: {
     fontWeight: '700',
     fontSize: 32,
   },
   form: {
-    gap: 16,
+    gap: spacing.lg,
+  },
+  input: {
+    backgroundColor: 'transparent',
   },
   button: {
-    marginTop: 8,
-    borderRadius: 12,
+    marginTop: spacing.sm,
+    borderRadius: radius.md,
   },
   buttonContent: {
     height: 52,
@@ -145,6 +173,6 @@ const styles = StyleSheet.create({
   linkRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 16,
+    marginTop: spacing.xl,
   },
 });

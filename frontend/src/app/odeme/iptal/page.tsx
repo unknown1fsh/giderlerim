@@ -9,6 +9,7 @@ export default function OdemeIptalPage() {
         deneyebilirsiniz.
       </p>
       <div className="flex flex-wrap items-center justify-center gap-3">
+        {/* Giriş gerektirmez: genel ziyaretçi için landing anchor. Uygulamada oturum açıksa /plan tercih edilir. */}
         <Link
           href="/#fiyatlandirma"
           className="rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"

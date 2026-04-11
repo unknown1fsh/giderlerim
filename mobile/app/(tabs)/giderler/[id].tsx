@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useGiderler, useGiderSil } from '../../../lib/hooks';
 import { formatPara, ODEME_YONTEMI_ETIKETLERI } from '@giderlerim/shared/utils/formatters';
+import { ScreenHeader } from '../../../components/ScreenHeader';
+import { spacing, radius } from '../../../theme';
 
 export default function GiderDetayEkrani() {
   const theme = useTheme();
@@ -30,11 +32,11 @@ export default function GiderDetayEkrani() {
   if (!gider) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <View style={styles.header}>
-          <Button onPress={() => router.back()} textColor={theme.colors.onBackground}>Geri</Button>
-        </View>
+        <ScreenHeader baslik="Gider Detayi" />
         <View style={styles.empty}>
-          <Text variant="bodyLarge">Gider bulunamadi</Text>
+          <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
+            Gider bulunamadi
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -42,34 +44,34 @@ export default function GiderDetayEkrani() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Button onPress={() => router.back()} textColor={theme.colors.onBackground}>Geri</Button>
-        <Text variant="titleLarge" style={{ fontWeight: '700' }}>Gider Detayi</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <ScreenHeader baslik="Gider Detayi" />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Card.Content>
+          <Card.Content style={styles.cardContent}>
             <View style={styles.amountRow}>
-              <Text style={{ fontSize: 20 }}>{gider.kategori.ikon}</Text>
+              <View style={[styles.ikonCircle, { backgroundColor: gider.kategori.renk + '18' }]}>
+                <Text style={{ fontSize: 28 }}>{gider.kategori.ikon}</Text>
+              </View>
               <Text variant="headlineMedium" style={{ fontWeight: '700', color: theme.colors.primary }}>
                 {formatPara(gider.tutar, gider.paraBirimi)}
               </Text>
             </View>
 
-            <Divider style={{ marginVertical: 16 }} />
+            <Divider style={{ marginVertical: spacing.xl }} />
 
-            <DetailRow label="Kategori" value={gider.kategori.ad} />
-            <DetailRow label="Tarih" value={gider.tarih} />
-            <DetailRow label="Odeme" value={ODEME_YONTEMI_ETIKETLERI[gider.odemeYontemi] || gider.odemeYontemi} />
-            {gider.aciklama && <DetailRow label="Aciklama" value={gider.aciklama} />}
-            {gider.notlar && <DetailRow label="Notlar" value={gider.notlar} />}
-            <DetailRow label="Giris Turu" value={gider.girisTuru} />
+            <DetailRow label="Kategori" value={gider.kategori.ad} theme={theme} />
+            <DetailRow label="Tarih" value={gider.tarih} theme={theme} />
+            <DetailRow label="Odeme" value={ODEME_YONTEMI_ETIKETLERI[gider.odemeYontemi] || gider.odemeYontemi} theme={theme} />
+            {gider.aciklama && <DetailRow label="Aciklama" value={gider.aciklama} theme={theme} />}
+            {gider.notlar && <DetailRow label="Notlar" value={gider.notlar} theme={theme} />}
+            <DetailRow label="Giris Turu" value={gider.girisTuru} theme={theme} />
             {gider.anormalMi && (
-              <Text variant="bodySmall" style={{ color: theme.colors.error, marginTop: 8 }}>
-                Anormal harcama olarak isaretlendi
-              </Text>
+              <View style={[styles.anormalBadge, { backgroundColor: theme.colors.error + '15' }]}>
+                <Text variant="labelSmall" style={{ color: theme.colors.error, fontWeight: '600' }}>
+                  Anormal harcama olarak isaretlendi
+                </Text>
+              </View>
             )}
           </Card.Content>
         </Card>
@@ -80,6 +82,8 @@ export default function GiderDetayEkrani() {
           loading={sil.isPending}
           textColor={theme.colors.error}
           style={styles.deleteButton}
+          contentStyle={{ height: 48 }}
+          icon="delete-outline"
         >
           Gideri Sil
         </Button>
@@ -88,22 +92,72 @@ export default function GiderDetayEkrani() {
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailRow({ label, value, theme }: { label: string; value: string; theme: any }) {
   return (
     <View style={styles.detailRow}>
-      <Text variant="bodyMedium" style={{ color: '#6B7280', flex: 1 }}>{label}</Text>
-      <Text variant="bodyMedium" style={{ fontWeight: '500', flex: 2, textAlign: 'right' }}>{value}</Text>
+      <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, flex: 1 }}>
+        {label}
+      </Text>
+      <Text
+        variant="bodyMedium"
+        style={{ fontWeight: '500', flex: 2, textAlign: 'right', color: theme.colors.onSurface }}
+        numberOfLines={2}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8 },
-  content: { padding: 16, gap: 16 },
-  card: { borderRadius: 16 },
-  amountRow: { flexDirection: 'row', alignItems: 'center', gap: 12, justifyContent: 'center', paddingVertical: 8 },
-  detailRow: { flexDirection: 'row', paddingVertical: 8 },
-  deleteButton: { borderColor: '#ef4444', borderRadius: 12 },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  content: {
+    padding: spacing.xl,
+    gap: spacing.lg,
+  },
+  card: {
+    borderRadius: radius.lg,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+  },
+  cardContent: {
+    padding: spacing.xl,
+  },
+  amountRow: {
+    alignItems: 'center',
+    gap: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  ikonCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    paddingVertical: spacing.md,
+    minHeight: 44,
+    alignItems: 'center',
+  },
+  anormalBadge: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.sm,
+    alignSelf: 'flex-start',
+  },
+  deleteButton: {
+    borderColor: '#ef4444',
+    borderRadius: radius.md,
+  },
+  empty: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
