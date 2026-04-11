@@ -31,6 +31,30 @@
       ],
       "@tanstack/react-query": [
         "./node_modules/@tanstack/react-query"
+      ],
+      "zustand": [
+        "./node_modules/zustand"
+      ],
+      "zustand/*": [
+        "./node_modules/zustand/*"
+      ],
+      "use-sync-external-store": [
+        "./node_modules/use-sync-external-store"
+      ],
+      "use-sync-external-store/*": [
+        "./node_modules/use-sync-external-store/*"
+      ],
+      "axios": [
+        "./node_modules/axios"
+      ],
+      "react": [
+        "./node_modules/@types/react"
+      ],
+      "date-fns": [
+        "./node_modules/date-fns"
+      ],
+      "date-fns/*": [
+        "./node_modules/date-fns/*"
       ]
     }
   },
