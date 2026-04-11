@@ -12,15 +12,14 @@
     "./utils/*": "./utils/*"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.40.0",
-    "axios": "^1.15.0",
-    "zustand": "^4.5.2"
+    "axios": "^1.15.0"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.40.0",
     "axios": "^1.15.0",
     "date-fns": "^3.6.0",
     "react": "19.1.0",
+    "use-sync-external-store": "^1.6.0",
     "zustand": "^4.5.2"
   },
   "devDependencies": {

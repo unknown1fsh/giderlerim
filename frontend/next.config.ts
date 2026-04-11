@@ -6,6 +6,8 @@ const monorepoRoot = path.resolve(process.cwd(), "..");
 
 /** Monorepo: shared altında ikinci @tanstack/react-query → "No QueryClient set". React'a alias vermeyin (SSR/prerender'da çift React riski). */
 const reactQueryPkg = path.resolve(process.cwd(), "node_modules/@tanstack/react-query");
+const zustandPkg = path.resolve(process.cwd(), "node_modules/zustand");
+const useSyncPkg = path.resolve(process.cwd(), "node_modules/use-sync-external-store");
 
 /** Turbopack (özellikle Windows) mutlak disk yolunu alias değeri olarak desteklemiyor; kök `monorepoRoot` olduğundan göreli yol verilir. */
 function turboRelative(abs: string): string {
@@ -21,6 +23,8 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       "@tanstack/react-query": reactQueryPkg,
+      "zustand": zustandPkg,
+      "use-sync-external-store": useSyncPkg,
     };
     config.module.rules.push({
       test: /\.svg$/,
@@ -32,6 +36,8 @@ const nextConfig: NextConfig = {
     root: monorepoRoot,
     resolveAlias: {
       "@tanstack/react-query": turboRelative(reactQueryPkg),
+      "zustand": turboRelative(zustandPkg),
+      "use-sync-external-store": turboRelative(useSyncPkg),
     },
     rules: {
       "*.svg": {
