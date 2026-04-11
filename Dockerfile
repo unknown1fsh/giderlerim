@@ -20,7 +20,9 @@ COPY packages/shared ./packages/shared/
 RUN cd packages/shared && npm ci --no-workspaces
 RUN rm -rf /repo/packages/shared/node_modules/@tanstack \
     /repo/packages/shared/node_modules/react \
-    /repo/packages/shared/node_modules/react-dom
+    /repo/packages/shared/node_modules/react-dom \
+    /repo/packages/shared/node_modules/zustand \
+    /repo/packages/shared/node_modules/use-sync-external-store
 
 COPY frontend/package*.json ./frontend/
 WORKDIR /repo/frontend
