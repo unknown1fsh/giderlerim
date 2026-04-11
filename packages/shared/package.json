@@ -13,12 +13,12 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.40.0",
-    "axios": "^1.7.2",
+    "axios": "^1.15.0",
     "zustand": "^4.5.2"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.40.0",
-    "axios": "^1.7.2",
+    "axios": "^1.15.0",
     "date-fns": "^3.6.0",
     "react": "^19.1.0 || ^19.0.0 || ^18.0.0",
     "zustand": "^4.5.2"
