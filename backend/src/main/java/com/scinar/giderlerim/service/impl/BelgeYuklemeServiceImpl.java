@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
-import com.scinar.giderlerim.config.AnthropicConfig;
+import com.scinar.giderlerim.config.OpenAiConfig;
 import com.scinar.giderlerim.dto.response.ApiResponse;
 import com.scinar.giderlerim.dto.response.BelgeYuklemeResponse;
 import com.scinar.giderlerim.entity.BelgeYukleme;
@@ -53,8 +53,7 @@ import java.util.stream.Collectors;
 public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
 
     private static final long MAX_DOSYA_BOYUTU = 15L * 1024 * 1024; // 15MB
-    private static final String ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-    private static final String ANTHROPIC_VERSIYONU = "2023-06-01";
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
     private static final List<DateTimeFormatter> TARIH_FORMATLARI = List.of(
             DateTimeFormatter.ofPattern("dd/MM/yyyy"),
@@ -68,7 +67,7 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
     private final GiderRepository giderRepository;
     private final KullaniciRepository kullaniciRepository;
     private final KategoriRepository kategoriRepository;
-    private final AnthropicConfig anthropicConfig;
+    private final OpenAiConfig openAiConfig;
     private final RestTemplate restTemplate;
 
     @Override
@@ -98,7 +97,6 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı."));
 
-        // Premium kontrolü
         if (kullanici.getPlan() == PlanTuru.FREE) {
             throw new PlanLimitiAsimException("Belge yükleme özelliği Premium veya Ultra plana dahildir.");
         }
@@ -279,22 +277,29 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
             throw new GecersizDosyaException("PDF dosyasından metin çıkarılamadı.");
         }
 
+        String kategoriListesi = kategoriListesiHazirla(kullanici);
+
         String prompt = """
                 Aşağıdaki metin bir banka ekstresi, makbuz veya harcama belgesidir.
                 TÜM harcama kalemlerini JSON formatında çıkar. Sadece harcamaları listele, gelirleri dahil etme.
                 Format:
-                [{"tarih":"YYYY-MM-DD","tutar":0.00,"aciklama":"...","odemeYontemi":"NAKIT"}]
+                [{"tarih":"YYYY-MM-DD","tutar":0.00,"aciklama":"...","odemeYontemi":"NAKIT","kategori":"Kategori Adı"}]
                 Sadece JSON dizisi döndür, başka açıklama ekleme.
                 odemeYontemi değerleri: NAKIT, KREDI_KARTI, BANKA_KARTI, HAVALE, DIGER
                 Tarih bulunamazsa bugünün tarihini kullan: %s
+                
+                Her harcama için aşağıdaki kategorilerden en uygun olanını seç:
+                %s
+                Eğer hiçbir kategori uygun değilse "Diğer" yaz.
                 ---
                 %s
-                """.formatted(LocalDate.now(), pdfMetni.length() > 8000 ? pdfMetni.substring(0, 8000) : pdfMetni);
+                """.formatted(LocalDate.now(), kategoriListesi,
+                pdfMetni.length() > 8000 ? pdfMetni.substring(0, 8000) : pdfMetni);
 
         List<Map<String, Object>> mesajlar = List.of(
                 Map.of("role", "user", "content", prompt)
         );
-        String yanit = claudeApiCagir(mesajlar);
+        String yanit = openAiApiCagir(mesajlar);
         List<Gider> giderler = jsonYanitiGiderlereCevir(yanit, kullanici, yukleme);
         yuklemeKapat(yukleme, giderler, Collections.emptyList(), giderler.size());
     }
@@ -304,77 +309,79 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
         byte[] dosyaBytes = dosya.getInputStream().readAllBytes();
         String base64 = Base64.getEncoder().encodeToString(dosyaBytes);
         String mediaType = gorselMediaType(dosya.getOriginalFilename());
+        String kategoriListesi = kategoriListesiHazirla(kullanici);
 
         String prompt = """
                 Bu görüntü bir makbuz, fiş, banka ekstresi veya harcama belgesidir.
                 Görseldeki TÜM harcama kalemlerini JSON formatında çıkar. Sadece harcamaları listele, gelirleri dahil etme.
                 Format:
-                [{"tarih":"YYYY-MM-DD","tutar":0.00,"aciklama":"...","odemeYontemi":"NAKIT"}]
+                [{"tarih":"YYYY-MM-DD","tutar":0.00,"aciklama":"...","odemeYontemi":"NAKIT","kategori":"Kategori Adı"}]
                 Sadece JSON dizisi döndür, başka açıklama ekleme.
                 odemeYontemi değerleri: NAKIT, KREDI_KARTI, BANKA_KARTI, HAVALE, DIGER
                 Tarih bulunamazsa bugünün tarihini kullan: %s
-                """.formatted(LocalDate.now());
+                
+                Her harcama için aşağıdaki kategorilerden en uygun olanını seç:
+                %s
+                Eğer hiçbir kategori uygun değilse "Diğer" yaz.
+                """.formatted(LocalDate.now(), kategoriListesi);
+
+        String dataUrl = "data:" + mediaType + ";base64," + base64;
 
         List<Map<String, Object>> icerikListesi = new ArrayList<>();
-        Map<String, Object> gorselIcerik = new HashMap<>();
-        gorselIcerik.put("type", "image");
-        gorselIcerik.put("source", Map.of(
-                "type", "base64",
-                "media_type", mediaType,
-                "data", base64
-        ));
-        icerikListesi.add(gorselIcerik);
         icerikListesi.add(Map.of("type", "text", "text", prompt));
+        icerikListesi.add(Map.of(
+                "type", "image_url",
+                "image_url", Map.of("url", dataUrl, "detail", "high")
+        ));
 
         List<Map<String, Object>> mesajlar = List.of(
                 Map.of("role", "user", "content", icerikListesi)
         );
-        String yanit = claudeApiCagir(mesajlar);
+        String yanit = openAiApiCagir(mesajlar);
         List<Gider> giderler = jsonYanitiGiderlereCevir(yanit, kullanici, yukleme);
         yuklemeKapat(yukleme, giderler, Collections.emptyList(), giderler.size());
     }
 
-    // ========== Claude API ==========
+    // ========== OpenAI API ==========
 
-    private String claudeApiCagir(List<Map<String, Object>> mesajlar) {
+    private String openAiApiCagir(List<Map<String, Object>> mesajlar) {
         HttpHeaders basliklar = new HttpHeaders();
         basliklar.setContentType(MediaType.APPLICATION_JSON);
-        basliklar.set("x-api-key", anthropicConfig.getApiAnahtari());
-        basliklar.set("anthropic-version", ANTHROPIC_VERSIYONU);
+        basliklar.setBearerAuth(openAiConfig.getApiAnahtari());
 
         Map<String, Object> istek = new HashMap<>();
-        istek.put("model", anthropicConfig.getModel());
+        istek.put("model", openAiConfig.getModel());
         istek.put("max_tokens", 4096);
         istek.put("messages", mesajlar);
 
         try {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(istek, basliklar);
             ResponseEntity<String> yanit = restTemplate.exchange(
-                    ANTHROPIC_API_URL, HttpMethod.POST, entity, String.class
+                    OPENAI_API_URL, HttpMethod.POST, entity, String.class
             );
             String yanitGovdesi = yanit.getBody();
             if (yanitGovdesi == null) throw new RuntimeException("API boş yanıt döndü.");
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(yanitGovdesi);
-            return node.path("content").get(0).path("text").asText();
+            return node.path("choices").get(0).path("message").path("content").asText();
         } catch (Exception e) {
-            log.error("Claude Vision API çağrısı başarısız: {}", e.getMessage());
+            log.error("OpenAI API çağrısı başarısız: {}", e.getMessage());
             throw new RuntimeException("Yapay zeka servisi şu an kullanılamıyor.");
         }
     }
 
     private List<Gider> jsonYanitiGiderlereCevir(String yanit, Kullanici kullanici, BelgeYukleme yukleme) {
         Kategori varsayilanKategori = varsayilanKategoriGetir(kullanici);
+        List<Kategori> kullaniciKategorileri = kategoriRepository.findAllByKullaniciId(kullanici.getId());
         List<Gider> giderler = new ArrayList<>();
 
         try {
-            // JSON dizisini bul (bazen Claude fazladan metin ekleyebilir)
             String temizYanit = yanit.trim();
             int baslangic = temizYanit.indexOf('[');
             int bitis = temizYanit.lastIndexOf(']');
             if (baslangic == -1 || bitis == -1) {
-                log.warn("Claude yanıtında JSON dizisi bulunamadı: {}", temizYanit);
+                log.warn("AI yanıtında JSON dizisi bulunamadı: {}", temizYanit);
                 return giderler;
             }
             temizYanit = temizYanit.substring(baslangic, bitis + 1);
@@ -389,16 +396,21 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
                     BigDecimal tutar = new BigDecimal(item.path("tutar").asText("0"));
                     String aciklama = item.path("aciklama").asText(null);
                     OdemeYontemi odemeYontemi = odemeYontemiParse(item.path("odemeYontemi").asText("NAKIT"));
+                    String kategoriAdi = item.path("kategori").asText(null);
+
+                    Kategori eslesenKategori = kategoriEslestir(kategoriAdi, kullaniciKategorileri, varsayilanKategori);
+                    boolean aiKategorilendi = eslesenKategori != varsayilanKategori && kategoriAdi != null;
 
                     if (tutar.compareTo(BigDecimal.ZERO) > 0) {
-                        giderler.add(giderOlustur(kullanici, varsayilanKategori, yukleme, tutar, aciklama, tarih, odemeYontemi));
+                        giderler.add(giderOlusturWithKategori(kullanici, eslesenKategori, yukleme,
+                                tutar, aciklama, tarih, odemeYontemi, aiKategorilendi));
                     }
                 } catch (Exception e) {
                     log.debug("JSON item parse hatası: {}", e.getMessage());
                 }
             }
         } catch (Exception e) {
-            log.error("Claude yanıtı parse hatası: {}", e.getMessage());
+            log.error("AI yanıtı parse hatası: {}", e.getMessage());
         }
         return giderler;
     }
@@ -420,6 +432,48 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
         if (lower.endsWith(".png")) return "image/png";
         if (lower.endsWith(".bmp")) return "image/bmp";
         return "image/jpeg";
+    }
+
+    private String kategoriListesiHazirla(Kullanici kullanici) {
+        List<Kategori> kategoriler = kategoriRepository.findAllByKullaniciId(kullanici.getId());
+        return kategoriler.stream()
+                .map(k -> k.getAd())
+                .collect(Collectors.joining(", "));
+    }
+
+    private Kategori kategoriEslestir(String kategoriAdi, List<Kategori> kategoriler, Kategori varsayilan) {
+        if (kategoriAdi == null || kategoriAdi.isBlank()) return varsayilan;
+
+        String normAd = normalles(kategoriAdi.trim());
+
+        for (Kategori k : kategoriler) {
+            if (normalles(k.getAd()).equals(normAd)) return k;
+        }
+
+        for (Kategori k : kategoriler) {
+            String normKatAd = normalles(k.getAd());
+            if (normKatAd.contains(normAd) || normAd.contains(normKatAd)) return k;
+        }
+
+        return varsayilan;
+    }
+
+    private Gider giderOlusturWithKategori(Kullanici kullanici, Kategori kategori, BelgeYukleme yukleme,
+                                            BigDecimal tutar, String aciklama, LocalDate tarih,
+                                            OdemeYontemi odemeYontemi, boolean aiKategorilendi) {
+        return Gider.builder()
+                .kullanici(kullanici)
+                .kategori(kategori)
+                .tutar(tutar)
+                .paraBirimi(ParaBirimi.TRY)
+                .aciklama(aciklama != null && !aciklama.isEmpty() ? aciklama : null)
+                .tarih(tarih)
+                .odemeYontemi(odemeYontemi)
+                .girisTuru(GirisTuru.BELGE)
+                .belgeYukleme(yukleme)
+                .aiKategorilendi(aiKategorilendi)
+                .anormalMi(false)
+                .build();
     }
 
     private Kategori varsayilanKategoriGetir(Kullanici kullanici) {

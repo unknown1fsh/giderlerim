@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet, ScrollView, ActivityIndicator, Linking, useWindowDimensions } from 'react-native';
-import { Text, Card, Button, useTheme } from 'react-native-paper';
+import { Text, Card, Button, useTheme, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import type { AxiosError } from 'axios';
@@ -9,6 +9,7 @@ import { useAuthStore } from '../../../lib/stores';
 import { planYukseltmeUrl } from '../../../lib/googlePlayPlan';
 import { AiAnalizResponse } from '@giderlerim/shared/types/ai.types';
 import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
+import { AY_ADLARI } from '@giderlerim/shared/utils/formatters';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { spacing, radius } from '../../../theme';
 
@@ -47,6 +48,27 @@ export default function AnalizlerEkrani() {
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState('');
 
+  const now = new Date();
+  const [secilenAy, setSecilenAy] = useState(now.getMonth() + 1);
+  const [secilenYil, setSecilenYil] = useState(now.getFullYear());
+
+  const ayDegistir = (delta: number) => {
+    let yeniAy = secilenAy + delta;
+    let yeniYil = secilenYil;
+    if (yeniAy < 1) { yeniAy = 12; yeniYil--; }
+    if (yeniAy > 12) { yeniAy = 1; yeniYil++; }
+    const bugun = new Date();
+    if (yeniYil > bugun.getFullYear() || (yeniYil === bugun.getFullYear() && yeniAy > bugun.getMonth() + 1)) return;
+    setSecilenAy(yeniAy);
+    setSecilenYil(yeniYil);
+  };
+
+  const ileriGidebilir = (): boolean => {
+    const bugun = new Date();
+    if (secilenYil < bugun.getFullYear()) return true;
+    return secilenAy < bugun.getMonth() + 1;
+  };
+
   const analizCalistir = async (tip: AnalizTipi) => {
     const { gerekliPlan } = ANALIZ_META[tip];
     if (!planYetkiliMi(plan, gerekliPlan)) {
@@ -58,11 +80,10 @@ export default function AnalizlerEkrani() {
     setYukleniyor(true);
     setHata('');
     try {
-      const now = new Date();
       let result;
       switch (tip) {
         case 'harcama':
-          result = await services.aiAnaliz.harcamaAnaliziYap(now.getMonth() + 1, now.getFullYear());
+          result = await services.aiAnaliz.harcamaAnaliziYap(secilenAy, secilenYil);
           break;
         case 'butce':
           result = await services.aiAnaliz.butceOnerisiAl();
@@ -117,6 +138,26 @@ export default function AnalizlerEkrani() {
             Ultra plani: Anomali tespiti ve Tasarruf firsatlari.
           </Text>
         )}
+
+        <Card style={[styles.aySeciciCard, { backgroundColor: theme.colors.surface }]}>
+          <Card.Content style={styles.aySeciciRow}>
+            <IconButton
+              icon="chevron-left"
+              size={22}
+              onPress={() => ayDegistir(-1)}
+              disabled={yukleniyor}
+            />
+            <Text variant="titleSmall" style={{ fontWeight: '600', color: theme.colors.onSurface }}>
+              {AY_ADLARI[secilenAy - 1]} {secilenYil}
+            </Text>
+            <IconButton
+              icon="chevron-right"
+              size={22}
+              onPress={() => ayDegistir(1)}
+              disabled={yukleniyor || !ileriGidebilir()}
+            />
+          </Card.Content>
+        </Card>
 
         <View style={styles.buttonGrid}>
           {(Object.keys(ANALIZ_META) as AnalizTipi[]).map((tip) => {
@@ -234,6 +275,17 @@ const styles = StyleSheet.create({
   },
   banner: {
     borderRadius: radius.md,
+  },
+  aySeciciCard: {
+    borderRadius: radius.md,
+    elevation: 1,
+  },
+  aySeciciRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   buttonGrid: {
     flexDirection: 'row',

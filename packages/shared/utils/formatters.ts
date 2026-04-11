@@ -34,4 +34,5 @@ export const GIRIS_TURU_ETIKETLERI: Record<string, string> = {
   CSV: 'CSV',
   OCR: 'OCR',
   SES: 'Ses',
+  BELGE: 'Belge/Fiş',
 };

@@ -9,22 +9,22 @@ import org.springframework.web.client.RestTemplate;
 
 @Getter
 @Configuration
-public class AnthropicConfig {
+public class OpenAiConfig {
 
-    @Value("${anthropic.api.key}")
+    @Value("${openai.api.key}")
     private String apiAnahtari;
 
-    @Value("${anthropic.model}")
+    @Value("${openai.model}")
     private String model;
 
-    @Value("${anthropic.max-tokens}")
+    @Value("${openai.max-tokens}")
     private int maxTokens;
 
     @Bean
     public RestTemplate restTemplate() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(30000);
-        factory.setReadTimeout(60000);
+        factory.setReadTimeout(120000);
         return new RestTemplate(factory);
     }
 }

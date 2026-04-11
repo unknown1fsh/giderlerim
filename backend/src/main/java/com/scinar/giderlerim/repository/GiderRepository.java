@@ -83,6 +83,9 @@ public interface GiderRepository extends JpaRepository<Gider, Long> {
     @Query("SELECT g FROM Gider g WHERE g.kullanici.id = :kullaniciId AND g.tarih >= :baslangic AND g.deletedAt IS NULL ORDER BY g.tarih DESC")
     List<Gider> findSon3AyGiderler(@Param("kullaniciId") Long kullaniciId, @Param("baslangic") LocalDate baslangic);
 
+    @Query("SELECT g FROM Gider g WHERE g.kullanici.id = :kullaniciId AND g.tarih >= :baslangic AND g.tarih <= :bitis AND g.deletedAt IS NULL ORDER BY g.tarih DESC")
+    List<Gider> findTarihAraligiGiderler(@Param("kullaniciId") Long kullaniciId, @Param("baslangic") LocalDate baslangic, @Param("bitis") LocalDate bitis);
+
     @Query("""
         SELECT g FROM Gider g
         WHERE g.kullanici.id = :kullaniciId

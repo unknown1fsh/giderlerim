@@ -1,5 +1,5 @@
 export type OdemeYontemi = 'NAKIT' | 'KREDI_KARTI' | 'BANKA_KARTI' | 'HAVALE' | 'DIGER';
-export type GirisTuru = 'MANUEL' | 'CSV' | 'OCR' | 'SES';
+export type GirisTuru = 'MANUEL' | 'CSV' | 'OCR' | 'SES' | 'BELGE';
 
 export interface GiderResponse {
   id: number;

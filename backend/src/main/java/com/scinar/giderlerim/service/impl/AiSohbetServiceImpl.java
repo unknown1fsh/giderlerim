@@ -2,7 +2,7 @@ package com.scinar.giderlerim.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scinar.giderlerim.config.AnthropicConfig;
+import com.scinar.giderlerim.config.OpenAiConfig;
 import com.scinar.giderlerim.dto.request.SohbetMesajiRequest;
 import com.scinar.giderlerim.dto.response.ApiResponse;
 import com.scinar.giderlerim.dto.response.SohbetMesajiResponse;
@@ -40,9 +40,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AiSohbetServiceImpl implements AiSohbetService {
 
-    private static final String ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-    private static final String ANTHROPIC_VERSIYONU = "2023-06-01";
-    private static final int MESAJ_BAĞLAM_LIMITI = 10;
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
+    private static final int MESAJ_BAGLAM_LIMITI = 10;
 
     private static final String SISTEM_PROMPT = """
             Sen Türk kullanıcılar için tasarlanmış, giderlerim.net uygulamasının finans koçusun.
@@ -53,7 +52,7 @@ public class AiSohbetServiceImpl implements AiSohbetService {
             Asla yanıltıcı veya riskli finansal tavsiyeler verme.
             """;
 
-    private final AnthropicConfig anthropicConfig;
+    private final OpenAiConfig openAiConfig;
     private final RestTemplate restTemplate;
     private final KullaniciRepository kullaniciRepository;
     private final GiderRepository giderRepository;
@@ -126,7 +125,6 @@ public class AiSohbetServiceImpl implements AiSohbetService {
             throw new IllegalArgumentException("Bu sohbet oturumu kapatılmış.");
         }
 
-        // Kullanıcı mesajını kaydet
         AiSohbetMesaji kullaniciMesaji = AiSohbetMesaji.builder()
                 .oturum(oturum)
                 .rol(MesajRolu.KULLANICI)
@@ -134,23 +132,21 @@ public class AiSohbetServiceImpl implements AiSohbetService {
                 .build();
         mesajRepository.save(kullaniciMesaji);
 
-        // Son mesajları bağlam için al
         List<AiSohbetMesaji> sonMesajlar = mesajRepository.findSonMesajlar(
-                oturumId, PageRequest.of(0, MESAJ_BAĞLAM_LIMITI)
+                oturumId, PageRequest.of(0, MESAJ_BAGLAM_LIMITI)
         );
 
-        // Ters çevir (en eski önce)
         Collections.reverse(sonMesajlar);
 
-        // Kullanıcının güncel finansal verilerini hazırla ve system prompt'a ekle
         String finansalBaglamMetni = finansalBaglamHazirla(kullaniciId);
         String dinamikSistemPrompt = SISTEM_PROMPT + "\n\n" +
                 "=== KULLANICI FİNANSAL DURUMU (GÜNCEL) ===\n" + finansalBaglamMetni;
 
-        // Anthropic mesaj formatına çevir
+        // OpenAI mesaj formatına çevir (system mesajı ilk sıraya)
         List<Map<String, String>> mesajListesi = new ArrayList<>();
 
-        // Mevcut oturum mesajlarını ekle (en son kullanıcı mesajı hariç)
+        mesajListesi.add(Map.of("role", "system", "content", dinamikSistemPrompt));
+
         for (AiSohbetMesaji mesaj : sonMesajlar) {
             if (mesaj.getId().equals(kullaniciMesaji.getId())) {
                 continue;
@@ -161,16 +157,10 @@ public class AiSohbetServiceImpl implements AiSohbetService {
             mesajListesi.add(mesajMap);
         }
 
-        // Son kullanıcı mesajını ekle
-        Map<String, String> sonMesaj = new HashMap<>();
-        sonMesaj.put("role", "user");
-        sonMesaj.put("content", request.icerik());
-        mesajListesi.add(sonMesaj);
+        mesajListesi.add(Map.of("role", "user", "content", request.icerik()));
 
-        // Claude API çağrısı (dinamik system prompt ile)
-        String asistanYaniti = claudeApiCagir(mesajListesi, dinamikSistemPrompt);
+        String asistanYaniti = openAiApiCagir(mesajListesi);
 
-        // Asistan yanıtını kaydet
         AiSohbetMesaji asistanMesaji = AiSohbetMesaji.builder()
                 .oturum(oturum)
                 .rol(MesajRolu.ASISTAN)
@@ -178,7 +168,6 @@ public class AiSohbetServiceImpl implements AiSohbetService {
                 .build();
         AiSohbetMesaji kaydedilenAsistanMesaji = mesajRepository.save(asistanMesaji);
 
-        // Oturum başlığını ilk mesajdan belirle
         if (oturum.getBaslik() != null && oturum.getBaslik().startsWith("Yeni Sohbet")) {
             String yeniBaslik = request.icerik().length() > 50
                     ? request.icerik().substring(0, 47) + "..."
@@ -208,22 +197,20 @@ public class AiSohbetServiceImpl implements AiSohbetService {
 
     // ========== Yardımcı Metodlar ==========
 
-    private String claudeApiCagir(List<Map<String, String>> mesajlar, String sistemPrompt) {
+    private String openAiApiCagir(List<Map<String, String>> mesajlar) {
         HttpHeaders basliklar = new HttpHeaders();
         basliklar.setContentType(MediaType.APPLICATION_JSON);
-        basliklar.set("x-api-key", anthropicConfig.getApiAnahtari());
-        basliklar.set("anthropic-version", ANTHROPIC_VERSIYONU);
+        basliklar.setBearerAuth(openAiConfig.getApiAnahtari());
 
         Map<String, Object> istek = new HashMap<>();
-        istek.put("model", anthropicConfig.getModel());
-        istek.put("max_tokens", anthropicConfig.getMaxTokens());
-        istek.put("system", sistemPrompt);
+        istek.put("model", openAiConfig.getModel());
+        istek.put("max_tokens", openAiConfig.getMaxTokens());
         istek.put("messages", mesajlar);
 
         try {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(istek, basliklar);
             ResponseEntity<String> yanit = restTemplate.exchange(
-                    ANTHROPIC_API_URL, HttpMethod.POST, entity, String.class
+                    OPENAI_API_URL, HttpMethod.POST, entity, String.class
             );
 
             String yanitGovdesi = yanit.getBody();
@@ -233,10 +220,10 @@ public class AiSohbetServiceImpl implements AiSohbetService {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(yanitGovdesi);
-            return node.path("content").get(0).path("text").asText();
+            return node.path("choices").get(0).path("message").path("content").asText();
 
         } catch (Exception e) {
-            log.error("Claude API sohbet çağrısı başarısız: {}", e.getMessage());
+            log.error("OpenAI API sohbet çağrısı başarısız: {}", e.getMessage());
             throw new RuntimeException("Yapay zeka servisi şu an kullanılamıyor. Lütfen daha sonra tekrar deneyin.");
         }
     }
@@ -256,7 +243,6 @@ public class AiSohbetServiceImpl implements AiSohbetService {
         sb.append(String.format("Toplam harcama: %.2f TL\n", aylikToplam.doubleValue()));
         sb.append(String.format("İşlem sayısı: %d\n", islemSayisi));
 
-        // Kategori dağılımı
         if (!kategoriToplamlar.isEmpty()) {
             sb.append("\n--- KATEGORİ DAĞILIMI ---\n");
             for (Object[] satir : kategoriToplamlar) {
@@ -266,7 +252,6 @@ public class AiSohbetServiceImpl implements AiSohbetService {
             }
         }
 
-        // Bütçe durumu
         List<Butce> butceler = butceRepository.findByKullaniciIdAndAyAndYilAndDeletedAtIsNull(kullaniciId, mevcutAy, mevcutYil);
         if (!butceler.isEmpty()) {
             sb.append("\n--- BÜTÇE DURUMU ---\n");
@@ -278,13 +263,12 @@ public class AiSohbetServiceImpl implements AiSohbetService {
                 int yuzde = limit.compareTo(BigDecimal.ZERO) > 0
                         ? harcanan.multiply(BigDecimal.valueOf(100)).divide(limit, 0, RoundingMode.HALF_UP).intValue()
                         : 0;
-                String uyari = yuzde >= 100 ? " ❌ AŞILDI" : (yuzde >= butce.getUyariYuzdesi() ? " ⚠ SINIRA YAKLAŞIYOR" : "");
+                String uyari = yuzde >= 100 ? " ASILDI" : (yuzde >= butce.getUyariYuzdesi() ? " SINIRA YAKLASIYOR" : "");
                 sb.append(String.format("  - %s: %.2f / %.2f TL (%%%d)%s\n",
                         butce.getKategori().getAd(), harcanan.doubleValue(), limit.doubleValue(), yuzde, uyari));
             }
         }
 
-        // Son 10 işlem
         LocalDate ayBaslangic = LocalDate.of(mevcutYil, mevcutAy, 1);
         List<Gider> sonIslemler = giderRepository.findSon3AyGiderler(kullaniciId, ayBaslangic);
         if (!sonIslemler.isEmpty()) {
@@ -297,7 +281,6 @@ public class AiSohbetServiceImpl implements AiSohbetService {
             });
         }
 
-        // Ödeme yöntemi dağılımı
         BigDecimal krediKarti = giderRepository.findAylikToplamByOdemeYontemi(kullaniciId, mevcutAy, mevcutYil, OdemeYontemi.KREDI_KARTI);
         BigDecimal bankaKarti = giderRepository.findAylikToplamByOdemeYontemi(kullaniciId, mevcutAy, mevcutYil, OdemeYontemi.BANKA_KARTI);
         BigDecimal nakit = giderRepository.findAylikToplamByOdemeYontemi(kullaniciId, mevcutAy, mevcutYil, OdemeYontemi.NAKIT);

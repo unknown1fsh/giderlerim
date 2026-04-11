@@ -3,7 +3,7 @@ package com.scinar.giderlerim.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.scinar.giderlerim.config.AnthropicConfig;
+import com.scinar.giderlerim.config.OpenAiConfig;
 import com.scinar.giderlerim.dto.response.AiAnalizResponse;
 import com.scinar.giderlerim.dto.response.ApiResponse;
 import com.scinar.giderlerim.entity.AiAnalizSonucu;
@@ -35,11 +35,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AiAnalizServiceImpl implements AiAnalizService {
 
-    private static final String ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-    private static final String ANTHROPIC_VERSIYONU = "2023-06-01";
+    private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
     private static final int ONBELLEK_SAAT = 6;
 
-    private final AnthropicConfig anthropicConfig;
+    private final OpenAiConfig openAiConfig;
     private final RestTemplate restTemplate;
     private final KullaniciRepository kullaniciRepository;
     private final GiderRepository giderRepository;
@@ -52,7 +51,6 @@ public class AiAnalizServiceImpl implements AiAnalizService {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici, PlanTuru.PREMIUM, "Harcama analizi");
 
-        // Önbellek kontrolü
         Optional<AiAnalizSonucu> onbellekSonucu = analizSonucuRepository.findGecerliAnaliz(
                 kullaniciId, AnalizTuru.HARCAMA_ANALIZI, ay, yil, LocalDateTime.now()
         );
@@ -61,12 +59,10 @@ public class AiAnalizServiceImpl implements AiAnalizService {
             return ApiResponse.basarili(jsondenResponse(onbellekSonucu.get(), true));
         }
 
-        // Harcama verilerini hazırla
         LocalDate baslangic = TarihYardimcisi.ayBaslangici(ay, yil);
         LocalDate bitis = TarihYardimcisi.ayBitisi(ay, yil);
-        List<Gider> giderler = giderRepository.findSon3AyGiderler(kullaniciId, baslangic);
+        List<Gider> giderler = giderRepository.findTarihAraligiGiderler(kullaniciId, baslangic, bitis);
 
-        // Veri yoksa bilgi ver
         if (giderler.isEmpty()) {
             AiAnalizResponse bos = new AiAnalizResponse(
                     AnalizTuru.HARCAMA_ANALIZI,
@@ -107,9 +103,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
                 4. Somut ve uygulanabilir öneriler ver
                 """, ay, yil, harcamaOzeti);
 
-        AiAnalizResponse analizResponse = claudeApiCagir(kullaniciMesaji, sistemPrompt, AnalizTuru.HARCAMA_ANALIZI);
-
-        // Sonucu önbelleğe kaydet
+        AiAnalizResponse analizResponse = openAiAnalizCagir(kullaniciMesaji, sistemPrompt, AnalizTuru.HARCAMA_ANALIZI);
         sonucuKaydet(kullanici, AnalizTuru.HARCAMA_ANALIZI, ay, yil, analizResponse);
 
         return ApiResponse.basarili(analizResponse);
@@ -121,7 +115,6 @@ public class AiAnalizServiceImpl implements AiAnalizService {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici, PlanTuru.PREMIUM, "Bütçe önerisi");
 
-        // Önbellek kontrolü
         Optional<AiAnalizSonucu> onbellekSonucu = analizSonucuRepository.findGecerliAnalizAysiz(
                 kullaniciId, AnalizTuru.BUTCE_ONERISI, LocalDateTime.now()
         );
@@ -130,7 +123,6 @@ public class AiAnalizServiceImpl implements AiAnalizService {
             return ApiResponse.basarili(jsondenResponse(onbellekSonucu.get(), true));
         }
 
-        // Son 3 ayın verilerini al
         LocalDate ucAyOnce = LocalDate.now().minusMonths(3);
         List<Gider> giderler = giderRepository.findSon3AyGiderler(kullaniciId, ucAyOnce);
 
@@ -175,7 +167,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
                 4. Önerilerin gerçekçi ve sürdürülebilir olmasına dikkat et
                 """, harcamaOzeti);
 
-        AiAnalizResponse analizResponse = claudeApiCagir(kullaniciMesaji, sistemPrompt, AnalizTuru.BUTCE_ONERISI);
+        AiAnalizResponse analizResponse = openAiAnalizCagir(kullaniciMesaji, sistemPrompt, AnalizTuru.BUTCE_ONERISI);
         sonucuKaydet(kullanici, AnalizTuru.BUTCE_ONERISI, null, null, analizResponse);
 
         return ApiResponse.basarili(analizResponse);
@@ -186,6 +178,14 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     public ApiResponse<AiAnalizResponse> anomaliTespitEt(Long kullaniciId) {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici, PlanTuru.ULTRA, "Anomali tespiti");
+
+        Optional<AiAnalizSonucu> onbellekSonucu = analizSonucuRepository.findGecerliAnalizAysiz(
+                kullaniciId, AnalizTuru.ANOMALI_TESPITI, LocalDateTime.now()
+        );
+
+        if (onbellekSonucu.isPresent()) {
+            return ApiResponse.basarili(jsondenResponse(onbellekSonucu.get(), true));
+        }
 
         LocalDate ucAyOnce = LocalDate.now().minusMonths(3);
         List<Gider> giderler = giderRepository.findSon3AyGiderler(kullaniciId, ucAyOnce);
@@ -231,7 +231,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
                 4. Her anomali için açıklama ve ne yapılması gerektiğini belirt
                 """, harcamaOzeti);
 
-        AiAnalizResponse analizResponse = claudeApiCagir(kullaniciMesaji, sistemPrompt, AnalizTuru.ANOMALI_TESPITI);
+        AiAnalizResponse analizResponse = openAiAnalizCagir(kullaniciMesaji, sistemPrompt, AnalizTuru.ANOMALI_TESPITI);
         sonucuKaydet(kullanici, AnalizTuru.ANOMALI_TESPITI, null, null, analizResponse);
 
         return ApiResponse.basarili(analizResponse);
@@ -243,7 +243,6 @@ public class AiAnalizServiceImpl implements AiAnalizService {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici, PlanTuru.ULTRA, "Tasarruf fırsatları analizi");
 
-        // Önbellek kontrolü
         Optional<AiAnalizSonucu> onbellekSonucu = analizSonucuRepository.findGecerliAnalizAysiz(
                 kullaniciId, AnalizTuru.TASARRUF_FIRSATI, LocalDateTime.now()
         );
@@ -298,7 +297,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
                 5. Tasarruf hedefleri ve zaman çizelgesi öner
                 """, harcamaOzeti);
 
-        AiAnalizResponse analizResponse = claudeApiCagir(kullaniciMesaji, sistemPrompt, AnalizTuru.TASARRUF_FIRSATI);
+        AiAnalizResponse analizResponse = openAiAnalizCagir(kullaniciMesaji, sistemPrompt, AnalizTuru.TASARRUF_FIRSATI);
         sonucuKaydet(kullanici, AnalizTuru.TASARRUF_FIRSATI, null, null, analizResponse);
 
         return ApiResponse.basarili(analizResponse);
@@ -306,37 +305,36 @@ public class AiAnalizServiceImpl implements AiAnalizService {
 
     // ========== Yardımcı Metodlar ==========
 
-    private AiAnalizResponse claudeApiCagir(String kullaniciMesaji, String sistemPrompt, AnalizTuru tur) {
+    private AiAnalizResponse openAiAnalizCagir(String kullaniciMesaji, String sistemPrompt, AnalizTuru tur) {
         HttpHeaders basliklar = new HttpHeaders();
         basliklar.setContentType(MediaType.APPLICATION_JSON);
-        basliklar.set("x-api-key", anthropicConfig.getApiAnahtari());
-        basliklar.set("anthropic-version", ANTHROPIC_VERSIYONU);
+        basliklar.setBearerAuth(openAiConfig.getApiAnahtari());
 
-        Map<String, Object> mesaj = new HashMap<>();
-        mesaj.put("role", "user");
-        mesaj.put("content", kullaniciMesaji);
+        List<Map<String, String>> mesajlar = List.of(
+                Map.of("role", "system", "content", sistemPrompt),
+                Map.of("role", "user", "content", kullaniciMesaji)
+        );
 
         Map<String, Object> istek = new HashMap<>();
-        istek.put("model", anthropicConfig.getModel());
-        istek.put("max_tokens", anthropicConfig.getMaxTokens());
-        istek.put("system", sistemPrompt);
-        istek.put("messages", List.of(mesaj));
+        istek.put("model", openAiConfig.getModel());
+        istek.put("max_tokens", openAiConfig.getMaxTokens());
+        istek.put("messages", mesajlar);
 
         try {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(istek, basliklar);
             ResponseEntity<String> yanit = restTemplate.exchange(
-                    ANTHROPIC_API_URL, HttpMethod.POST, entity, String.class
+                    OPENAI_API_URL, HttpMethod.POST, entity, String.class
             );
 
             String yanitGovdesi = yanit.getBody();
             if (yanitGovdesi == null) {
-                throw new RuntimeException("Anthropic API boş yanıt döndü.");
+                throw new RuntimeException("OpenAI API boş yanıt döndü.");
             }
 
             return yanitParseEt(yanitGovdesi, tur);
 
         } catch (Exception e) {
-            log.error("Anthropic API çağrısı başarısız: {}", e.getMessage());
+            log.error("OpenAI API çağrısı başarısız: {}", e.getMessage());
             throw new RuntimeException("Yapay zeka servisi şu an kullanılamıyor. Lütfen daha sonra tekrar deneyin.");
         }
     }
@@ -344,9 +342,8 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     private AiAnalizResponse yanitParseEt(String yanitJson, AnalizTuru tur) {
         try {
             JsonNode kok = objectMapper.readTree(yanitJson);
-            String metin = kok.path("content").get(0).path("text").asText();
+            String metin = kok.path("choices").get(0).path("message").path("content").asText();
 
-            // JSON içeriği ayıkla (markdown code block olabilir)
             if (metin.contains("```json")) {
                 metin = metin.substring(metin.indexOf("```json") + 7);
                 metin = metin.substring(0, metin.indexOf("```")).trim();
@@ -383,7 +380,6 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     }
 
     private String harcamaVerisiniHazirla(List<Gider> giderler, int ay, int yil) {
-        // Kategori bazlı gruplama
         Map<String, List<Gider>> kategoriGrubu = giderler.stream()
                 .collect(Collectors.groupingBy(g -> g.getKategori().getAd()));
 
