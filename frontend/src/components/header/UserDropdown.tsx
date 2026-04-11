@@ -9,7 +9,7 @@ import { useAuthStore } from "@/stores/authStore";
 
 const planEtiketi: Record<string, { etiket: string; renk: string }> = {
   FREE: { etiket: "Ücretsiz", renk: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300" },
-  PREMIUM: { etiket: "Premium", renk: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  PREMIUM: { etiket: "Pro", renk: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
   ULTRA: { etiket: "Ultra", renk: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
 };
 

@@ -1,23 +1,33 @@
+/**
+ * Plan limitleri — backend ile uyumlu özet (tek kaynak backend; burada istemci/dokümantasyon için).
+ * - GiderServiceImpl: FREE aylık 50 gider; PREMIUM/ULTRA sınır yok.
+ * - CsvYuklemeServiceImpl: FREE ayda 1 yükleme; ücretli sınır yok.
+ * - BelgeYuklemeServiceImpl: FREE kapalı; PREMIUM/ULTRA açık.
+ * - AiSohbet / AiAnaliz: FREE kapalı; Pro analizleri PREMIUM+; anomali/tasarruf ULTRA.
+ */
 export const PLAN_LIMITLERI = {
   FREE: {
     aylikGiderLimiti: 50,
+    aylikCsvYuklemeLimiti: 1,
     aiSohbetAktif: false,
-    aiAnalizAktif: false,
-    csvYuklemeAktif: false,
+    aiAnalizProAktif: false,
+    aiAnalizUltraAktif: false,
     belgeYuklemeAktif: false,
   },
   PREMIUM: {
-    aylikGiderLimiti: 500,
+    aylikGiderLimiti: Number.POSITIVE_INFINITY,
+    aylikCsvYuklemeLimiti: Number.POSITIVE_INFINITY,
     aiSohbetAktif: true,
-    aiAnalizAktif: true,
-    csvYuklemeAktif: true,
+    aiAnalizProAktif: true,
+    aiAnalizUltraAktif: false,
     belgeYuklemeAktif: true,
   },
   ULTRA: {
-    aylikGiderLimiti: Infinity,
+    aylikGiderLimiti: Number.POSITIVE_INFINITY,
+    aylikCsvYuklemeLimiti: Number.POSITIVE_INFINITY,
     aiSohbetAktif: true,
-    aiAnalizAktif: true,
-    csvYuklemeAktif: true,
+    aiAnalizProAktif: true,
+    aiAnalizUltraAktif: true,
     belgeYuklemeAktif: true,
   },
 } as const;

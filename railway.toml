@@ -1,7 +1,7 @@
 # Proje adı (workspace): supportive-fulfillment — ana uygulama servisi: giderlerim
 # Ortam değişkenleri: Dashboard → giderlerim → Variables
 # Giriş / API: JWT_SECRET, SPRING_DATASOURCE_*, ALLOWED_ORIGIN, ANTHROPIC_API_KEY
-# Build: NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_API_URL (boş önerilir) — ayrıntı: .env.example
+# Build: NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_API_URL, NEXT_PUBLIC_SHOPIER_* (ödeme linkleri) — ayrıntı: .env.example
 
 [build]
 dockerfilePath = "Dockerfile"

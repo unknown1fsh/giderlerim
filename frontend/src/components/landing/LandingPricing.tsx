@@ -112,7 +112,7 @@ export function LandingPricing() {
                 'Fiş ve belge ile içe aktarma',
                 'AI harcama koçu (sohbet)',
                 'AI harcama analizi ve bütçe önerisi',
-                'Öncelikli destek',
+                'Destek taleplerinde otomatik yüksek öncelik (Pro ve Ultra)',
               ].map((f) => (
                 <li key={f} className="flex items-center gap-2.5 text-sm text-gray-200">
                   <CheckIcon /> {f}

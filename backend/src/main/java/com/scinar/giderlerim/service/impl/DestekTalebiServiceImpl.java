@@ -10,6 +10,7 @@ import com.scinar.giderlerim.entity.Kullanici;
 import com.scinar.giderlerim.entity.enums.DestekDurumu;
 import com.scinar.giderlerim.entity.enums.DestekKategorisi;
 import com.scinar.giderlerim.entity.enums.DestekOnceligi;
+import com.scinar.giderlerim.entity.enums.PlanTuru;
 import com.scinar.giderlerim.exception.KayitBulunamadiException;
 import com.scinar.giderlerim.repository.DestekTalebiRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
@@ -39,18 +40,28 @@ public class DestekTalebiServiceImpl implements DestekTalebiService {
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı. ID: " + kullaniciId));
 
+        DestekOnceligi oncelik = request.oncelik() != null ? request.oncelik() : DestekOnceligi.NORMAL;
+        if (kullanici.getPlan() == PlanTuru.PREMIUM || kullanici.getPlan() == PlanTuru.ULTRA) {
+            oncelik = enAzOncelik(oncelik, DestekOnceligi.YUKSEK);
+        }
+
         DestekTalebi talep = DestekTalebi.builder()
                 .kullanici(kullanici)
                 .konu(request.konu())
                 .mesaj(request.mesaj())
                 .kategori(request.kategori() != null ? request.kategori() : DestekKategorisi.GENEL)
-                .oncelik(request.oncelik() != null ? request.oncelik() : DestekOnceligi.NORMAL)
+                .oncelik(oncelik)
                 .build();
 
         DestekTalebi kaydedilen = destekTalebiRepository.save(talep);
         log.info("Yeni destek talebi oluşturuldu. ID: {}, Kullanıcı: {}", kaydedilen.getId(), kullaniciId);
 
         return ApiResponse.basarili("Destek talebiniz başarıyla oluşturuldu.", entitydenResponse(kaydedilen));
+    }
+
+    /** Ücretli planda talep en az {@code taban} önceliğinde kaydedilir (sıra enum ordinal ile). */
+    private static DestekOnceligi enAzOncelik(DestekOnceligi secim, DestekOnceligi taban) {
+        return secim.ordinal() >= taban.ordinal() ? secim : taban;
     }
 
     @Override

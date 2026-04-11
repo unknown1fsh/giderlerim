@@ -16,7 +16,7 @@ const FEATURES = [
   {
     emoji: '📸',
     title: 'Belge ve fiş (Pro+)',
-    desc: 'PDF veya görüntü yükleyerek AI ile tutar ve kategori çıkarımı — Premium ve Ultra’da.',
+    desc: 'PDF veya görüntü yükleyerek AI ile tutar ve kategori çıkarımı — Pro ve Ultra’da.',
     border: 'border-white/10 hover:border-sky-500/40',
     grad: 'from-sky-500/12 to-transparent',
   },

@@ -2,6 +2,17 @@
 
 Backend’de Shopier webhook’u tanımlı değilse plan güncellemesi **otomatik olmaz**. Aşağıdaki operasyonel akışı kullanın.
 
+## Ürün → plan eşlemesi (canlı linkler)
+
+| Ürün | Shopier URL | Admin’de plan |
+|------|-------------|----------------|
+| Giderlerim Pro — Aylık | `https://shopier.com/ssayinovation/46065275` | **PREMIUM** (Pro) |
+| Giderlerim Pro — Yıllık | `https://shopier.com/ssayinovation/46065306` | **PREMIUM** (Pro) |
+| Giderlerim Ultra — Aylık | `https://shopier.com/ssayinovation/46065334` | **ULTRA** |
+| Giderlerim Ultra — Yıllık | `https://shopier.com/ssayinovation/46065493` | **ULTRA** |
+
+Kodda ortam değişkenleri: `NEXT_PUBLIC_SHOPIER_PRO_AYLIK`, `PRO_YILLIK`, `ULTRA_AYLIK`, `ULTRA_YILLIK` (Next.js); mobilde `EXPO_PUBLIC_SHOPIER_PRO_AYLIK`, `EXPO_PUBLIC_SHOPIER_ULTRA_AYLIK`. Ayrıntı: kök `.env.example`.
+
 ## 1. Sipariş geldiğinde
 
 1. Shopier bildirim e-postası veya panelde siparişi açın.
