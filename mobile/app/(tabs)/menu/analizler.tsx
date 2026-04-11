@@ -6,7 +6,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import type { AxiosError } from 'axios';
 import { services } from '../../../lib/apiClient';
 import { useAuthStore } from '../../../lib/stores';
-import { shopierProfilYukseltUrl } from '../../../lib/shopier';
+import { planYukseltmeUrl } from '../../../lib/googlePlayPlan';
 import { AiAnalizResponse } from '@giderlerim/shared/types/ai.types';
 import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
 import { ScreenHeader } from '../../../components/ScreenHeader';
@@ -83,7 +83,7 @@ export default function AnalizlerEkrani() {
     }
   };
 
-  const yukseltUrl = shopierProfilYukseltUrl(plan);
+  const yukseltUrl = planYukseltmeUrl(plan);
   const gridItemWidth = (width - spacing.xl * 2 - spacing.md) / 2;
 
   return (
@@ -98,7 +98,7 @@ export default function AnalizlerEkrani() {
           <Card style={[styles.banner, { backgroundColor: theme.colors.primaryContainer }]}>
             <Card.Content style={{ gap: spacing.sm }}>
               <Text variant="bodySmall" style={{ color: theme.colors.primary, lineHeight: 20 }}>
-                Pro planina gecerek harcama analizi ve butce onerisine erisirsiniz. Ultra ile anomali ve tasarruf analizleri acilir.
+                Pro planina Google Play uzerinden abonelikle gecerek harcama analizi ve butce onerisine erisirsiniz. Ultra ile anomali ve tasarruf analizleri acilir.
               </Text>
               <Button
                 mode="text"
@@ -106,7 +106,7 @@ export default function AnalizlerEkrani() {
                 onPress={() => Linking.openURL(yukseltUrl)}
                 icon="arrow-right"
               >
-                Plani yukselt
+                Google Play'de abonelik
               </Button>
             </Card.Content>
           </Card>

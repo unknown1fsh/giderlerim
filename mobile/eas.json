@@ -14,8 +14,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://giderlerim.net/api/v1",
-        "EXPO_PUBLIC_SHOPIER_PRO_AYLIK": "https://shopier.com/ssayinovation/46065275",
-        "EXPO_PUBLIC_SHOPIER_ULTRA_AYLIK": "https://shopier.com/ssayinovation/46065334"
+        "EXPO_PUBLIC_PLAY_SUBSCRIPTION_PRO_URL": "https://play.google.com/store/apps/details?id=com.scinar.giderlerim",
+        "EXPO_PUBLIC_PLAY_SUBSCRIPTION_ULTRA_URL": "https://play.google.com/store/apps/details?id=com.scinar.giderlerim"
       }
     },
     "production": {
@@ -24,8 +24,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://giderlerim.net/api/v1",
-        "EXPO_PUBLIC_SHOPIER_PRO_AYLIK": "https://shopier.com/ssayinovation/46065275",
-        "EXPO_PUBLIC_SHOPIER_ULTRA_AYLIK": "https://shopier.com/ssayinovation/46065334"
+        "EXPO_PUBLIC_PLAY_SUBSCRIPTION_PRO_URL": "https://play.google.com/store/apps/details?id=com.scinar.giderlerim",
+        "EXPO_PUBLIC_PLAY_SUBSCRIPTION_ULTRA_URL": "https://play.google.com/store/apps/details?id=com.scinar.giderlerim"
       }
     }
   },

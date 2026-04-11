@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { services } from '../../../lib/apiClient';
 import { useAuthStore } from '../../../lib/stores';
-import { shopierProfilYukseltUrl } from '../../../lib/shopier';
+import { planYukseltmeUrl } from '../../../lib/googlePlayPlan';
 import { AiMesajBalonu } from '../../../components/AiMesajBalonu';
 import { SohbetOturumResponse, SohbetMesajiResponse } from '@giderlerim/shared/types/ai.types';
 import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
@@ -107,7 +107,7 @@ export default function AiKocEkrani() {
   };
 
   if (plan === 'FREE') {
-    const yukseltUrl = shopierProfilYukseltUrl(plan);
+    const yukseltUrl = planYukseltmeUrl(plan);
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <View style={[styles.header, { borderBottomColor: theme.colors.outline + '40' }]}>
@@ -140,7 +140,7 @@ export default function AiKocEkrani() {
               lineHeight: 22,
             }}
           >
-            AI Finansal Koc ozelligini kullanmak icin Pro planina yukseltmeniz gerekiyor.
+            AI Finansal Koc icin Pro aboneligi Google Play uzerinden satin alinmalidir.
           </Text>
           <Button
             mode="contained"
@@ -150,7 +150,7 @@ export default function AiKocEkrani() {
             icon="arrow-up-bold-circle-outline"
             labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
-            Pro Planina Yukselt
+            Google Play'de Pro'ya gec
           </Button>
         </View>
       </SafeAreaView>

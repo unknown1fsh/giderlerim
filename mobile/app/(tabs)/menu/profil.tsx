@@ -3,7 +3,7 @@ import { Text, Card, Button, useTheme, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { shopierProfilYukseltUrl } from '../../../lib/shopier';
+import { planYukseltmeUrl } from '../../../lib/googlePlayPlan';
 import { useAuthStore } from '../../../lib/stores';
 import { ScreenHeader } from '../../../components/ScreenHeader';
 import { spacing, radius } from '../../../theme';
@@ -13,7 +13,7 @@ export default function ProfilEkrani() {
   const kullanici = useAuthStore((s) => s.kullanici);
 
   const handlePlanYukselt = () => {
-    WebBrowser.openBrowserAsync(shopierProfilYukseltUrl(kullanici?.plan));
+    WebBrowser.openBrowserAsync(planYukseltmeUrl(kullanici?.plan));
   };
 
   return (
