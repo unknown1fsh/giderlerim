@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
-import { Text, FAB, useTheme } from 'react-native-paper';
+import { FAB, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useGiderler } from '../../../lib/hooks';
 import { GiderKarti } from '../../../components/GiderKarti';
 import { GiderFiltre } from '@giderlerim/shared/types/gider.types';
+import { AppSurface, EmptyState, HeroHeader } from '../../../components/AppChrome';
 import { spacing, radius } from '../../../theme';
 
 export default function GiderlerEkrani() {
@@ -15,15 +15,14 @@ export default function GiderlerEkrani() {
   const { data, isLoading, refetch } = useGiderler(filtre);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Text variant="headlineSmall" style={{ fontWeight: '700', color: theme.colors.onBackground }}>
-          Giderler
-        </Text>
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
-          Tum harcamalariniz
-        </Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <AppSurface>
+        <HeroHeader
+          title="Giderler"
+          subtitle="Tüm harcamalarınızı hızlıca tarayın, detayları tek dokunuşla açın."
+          icon="wallet-outline"
+          meta="Hareketler"
+        />
 
       <FlatList
         data={data?.icerik || []}
@@ -37,30 +36,11 @@ export default function GiderlerEkrani() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           !isLoading ? (
-            <View style={styles.empty}>
-              <MaterialCommunityIcons
-                name="wallet-plus-outline"
-                size={64}
-                color={theme.colors.onSurfaceVariant}
-                style={{ opacity: 0.4 }}
-              />
-              <Text
-                variant="titleMedium"
-                style={{ color: theme.colors.onSurfaceVariant, marginTop: spacing.lg }}
-              >
-                Henuz gider eklenmemis
-              </Text>
-              <Text
-                variant="bodySmall"
-                style={{
-                  color: theme.colors.onSurfaceVariant,
-                  marginTop: spacing.xs,
-                  opacity: 0.7,
-                }}
-              >
-                + butonuna tiklayarak ilk giderinizi ekleyin
-              </Text>
-            </View>
+            <EmptyState
+              icon="wallet-plus-outline"
+              title="Henüz gider eklenmemiş"
+              description="+ butonuna dokunarak ilk giderinizi ekleyin."
+            />
           ) : null
         }
       />
@@ -71,25 +51,17 @@ export default function GiderlerEkrani() {
         color="#fff"
         onPress={() => router.push('/(tabs)/giderler/ekle')}
       />
+      </AppSurface>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-  },
   list: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.sm,
     paddingBottom: 100,
-  },
-  empty: {
-    alignItems: 'center',
-    paddingTop: 120,
   },
   fab: {
     position: 'absolute',

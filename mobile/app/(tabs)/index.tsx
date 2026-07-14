@@ -1,35 +1,32 @@
 import { useState } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, useWindowDimensions } from 'react-native';
-import { Text, Card, useTheme } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { Text, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useDashboard } from '../../lib/hooks';
 import { formatPara, AY_ADLARI } from '@giderlerim/shared/utils/formatters';
 import { DashboardOzetKart } from '../../components/DashboardOzetKart';
 import { ButceProgressBar } from '../../components/ButceProgressBar';
-import { spacing, radius } from '../../theme';
+import { AppCard, AppSurface, EmptyState, HeroHeader } from '../../components/AppChrome';
+import { appColors, spacing, radius } from '../../theme';
 
 export default function DashboardEkrani() {
   const theme = useTheme();
-  const { width } = useWindowDimensions();
   const now = new Date();
   const [ay] = useState(now.getMonth() + 1);
   const [yil] = useState(now.getFullYear());
   const { data, isLoading, refetch } = useDashboard(ay, yil);
 
   const cardGap = spacing.md;
-  const cardWidth = (width - spacing.xl * 2 - cardGap) / 2;
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Text variant="headlineSmall" style={{ fontWeight: '700', color: theme.colors.onBackground }}>
-          {AY_ADLARI[ay - 1]} {yil}
-        </Text>
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
-          Aylik harcama ozeti
-        </Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <AppSurface>
+        <HeroHeader
+          title={`${AY_ADLARI[ay - 1]} ${yil}`}
+          subtitle="Aylık harcama özetiniz, bütçe sağlığı ve hızlı finans sinyalleri."
+          icon="view-dashboard-outline"
+          meta="Giderlerim"
+        />
 
       <ScrollView
         contentContainerStyle={styles.content}
@@ -42,12 +39,12 @@ export default function DashboardEkrani() {
               <DashboardOzetKart
                 baslik="Toplam Harcama"
                 deger={formatPara(data.toplamHarcama)}
-                renk={theme.colors.primary}
+                renk={appColors.orange}
               />
               <DashboardOzetKart
                 baslik="Nakit"
                 deger={formatPara(data.nakitHarcama)}
-                renk="#22c55e"
+                renk={appColors.success}
               />
             </View>
 
@@ -55,20 +52,20 @@ export default function DashboardEkrani() {
               <DashboardOzetKart
                 baslik="Kredi Karti"
                 deger={formatPara(data.krediKartiHarcama)}
-                renk="#f59e0b"
+                renk={appColors.amber}
               />
               <DashboardOzetKart
-                baslik="Degisim"
+                baslik="Değişim"
                 deger={`${data.degisimYuzdesi >= 0 ? '+' : ''}${data.degisimYuzdesi.toFixed(1)}%`}
-                renk={data.degisimYuzdesi > 0 ? '#ef4444' : '#22c55e'}
+                renk={data.degisimYuzdesi > 0 ? appColors.danger : appColors.success}
               />
             </View>
 
             {data.kategoriDagilimi.length > 0 && (
-              <Card style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-                <Card.Content style={styles.sectionContent}>
+              <AppCard>
+                <View style={styles.sectionContent}>
                   <Text variant="titleMedium" style={styles.sectionTitle}>
-                    Kategori Dagilimi
+                    Kategori Dağılımı
                   </Text>
                   {data.kategoriDagilimi.slice(0, 5).map((kat) => (
                     <View key={kat.kategoriId} style={styles.kategoriRow}>
@@ -99,21 +96,21 @@ export default function DashboardEkrani() {
                       </Text>
                     </View>
                   ))}
-                </Card.Content>
-              </Card>
+                </View>
+              </AppCard>
             )}
 
             {data.butceDurumlari.length > 0 && (
-              <Card style={[styles.section, { backgroundColor: theme.colors.surface }]}>
-                <Card.Content style={styles.sectionContent}>
+              <AppCard>
+                <View style={styles.sectionContent}>
                   <Text variant="titleMedium" style={styles.sectionTitle}>
-                    Butce Durumlari
+                    Bütçe Durumları
                   </Text>
                   {data.butceDurumlari.map((butce) => (
                     <ButceProgressBar key={butce.butceId} butce={butce} />
                   ))}
-                </Card.Content>
-              </Card>
+                </View>
+              </AppCard>
             )}
 
             <View style={styles.statsRow}>
@@ -135,7 +132,7 @@ export default function DashboardEkrani() {
                 <View style={[styles.statChip, { backgroundColor: '#f59e0b18' }]}>
                   <MaterialCommunityIcons name="bell-outline" size={14} color="#f59e0b" />
                   <Text variant="labelSmall" style={{ color: '#f59e0b', marginLeft: 4 }}>
-                    {data.okunmamisUyariSayisi} uyari
+                    {data.okunmamisUyariSayisi} uyarı
                   </Text>
                 </View>
               )}
@@ -144,66 +141,35 @@ export default function DashboardEkrani() {
         )}
 
         {!data && !isLoading && (
-          <View style={styles.empty}>
-            <MaterialCommunityIcons
-              name="chart-line-variant"
-              size={64}
-              color={theme.colors.onSurfaceVariant}
-              style={{ opacity: 0.4 }}
-            />
-            <Text
-              variant="titleMedium"
-              style={{ color: theme.colors.onSurfaceVariant, marginTop: spacing.lg }}
-            >
-              Henuz veri yok
-            </Text>
-            <Text
-              variant="bodySmall"
-              style={{
-                color: theme.colors.onSurfaceVariant,
-                marginTop: spacing.xs,
-                textAlign: 'center',
-                opacity: 0.7,
-              }}
-            >
-              Gider ekleyerek baslayin
-            </Text>
-          </View>
+          <EmptyState
+            icon="chart-line-variant"
+            title="Henüz veri yok"
+            description="Gider ekleyerek aylık görünümünüzü oluşturmaya başlayın."
+          />
         )}
       </ScrollView>
+      </AppSurface>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
-  },
   content: {
     padding: spacing.xl,
     paddingTop: spacing.sm,
     gap: spacing.md,
+    paddingBottom: 116,
   },
   cardRow: {
     flexDirection: 'row',
-  },
-  section: {
-    borderRadius: radius.lg,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
   },
   sectionContent: {
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
   },
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: '900',
     marginBottom: spacing.md,
   },
   kategoriRow: {
@@ -225,11 +191,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.xl,
-  },
-  empty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 120,
   },
 });

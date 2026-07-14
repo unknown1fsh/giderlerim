@@ -1,42 +1,53 @@
 import { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Image, View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Text, TextInput, Button, useTheme, HelperText } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { services } from '../../lib/apiClient';
-import { apiHataMesaji } from '../../lib/apiError';
 import { useAuthStore } from '../../lib/stores';
-import { spacing, radius } from '../../theme';
+import { appColors, spacing, radius, shadows } from '../../theme';
+import type { KullaniciResponse } from '@giderlerim/shared/types/kullanici.types';
+
+const DEMO_EMAIL = 'demo@giderlerim.app';
+const DEMO_SIFRE = 'demo1234';
+
+const demoKullanici: KullaniciResponse = {
+  id: 1,
+  ad: 'Demo',
+  soyad: 'Kullanıcı',
+  email: DEMO_EMAIL,
+  plan: 'ULTRA',
+  paraBirimi: 'TRY',
+  avatarUrl: null,
+  adminMi: true,
+};
 
 export default function GirisEkrani() {
   const theme = useTheme();
   const girisYap = useAuthStore((s) => s.girisYap);
-  const kullaniciGuncelle = useAuthStore((s) => s.kullaniciGuncelle);
-  const [email, setEmail] = useState('');
-  const [sifre, setSifre] = useState('');
+  const [email, setEmail] = useState(DEMO_EMAIL);
+  const [sifre, setSifre] = useState(DEMO_SIFRE);
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState('');
   const [sifreGizli, setSifreGizli] = useState(true);
 
   const handleGiris = async () => {
     if (!email || !sifre) {
-      setHata('Email ve sifre gereklidir.');
+      setHata('Email ve şifre gereklidir.');
+      return;
+    }
+    if (email.trim().toLowerCase() !== DEMO_EMAIL || sifre !== DEMO_SIFRE) {
+      setHata(`Demo giriş için ${DEMO_EMAIL} / ${DEMO_SIFRE} kullanın.`);
       return;
     }
     setHata('');
     setYukleniyor(true);
     try {
-      const response = await services.auth.girisYap({ email, sifre });
-      const { accessToken, refreshToken } = response.data;
-      girisYap(accessToken, refreshToken, {} as any);
-      try {
-        const profilRes = await services.auth.beniBul();
-        kullaniciGuncelle(profilRes.data);
-      } catch {}
+      // Backend hazır olana kadar mobil demo oturumu yerelde açılıyor.
+      // Eski akış: services.auth.girisYap(...) ve services.auth.beniBul().
+      girisYap('demo-access-token', 'demo-refresh-token', demoKullanici);
       router.replace('/(tabs)');
-    } catch (err: unknown) {
-      setHata(apiHataMesaji(err, 'Giris basarisiz. Lutfen tekrar deneyin.'));
+    } catch {
+      setHata('Demo giriş başlatılamadı. Lütfen tekrar deneyin.');
     } finally {
       setYukleniyor(false);
     }
@@ -44,6 +55,7 @@ export default function GirisEkrani() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View style={styles.brandBand} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -53,22 +65,16 @@ export default function GirisEkrani() {
           keyboardShouldPersistTaps="handled"
         >
         <View style={styles.header}>
-          <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}>
-            <MaterialCommunityIcons
-              name="wallet-outline"
-              size={48}
-              color={theme.colors.primary}
-            />
-          </View>
-          <Text variant="headlineLarge" style={[styles.title, { color: theme.colors.primary }]}>
+          <Image source={require('../../assets/icon.png')} style={styles.logo} />
+          <Text variant="headlineLarge" style={styles.title}>
             Giderlerim
           </Text>
-          <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
-            Hesabiniza giris yapin
+          <Text variant="bodyLarge" style={styles.subtitle}>
+            Harcamalarınızı daha net yönetin.
           </Text>
         </View>
 
-        <View style={styles.form}>
+        <View style={[styles.form, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
           <TextInput
             label="Email"
             value={email}
@@ -83,7 +89,7 @@ export default function GirisEkrani() {
           />
 
           <TextInput
-            label="Sifre"
+            label="Şifre"
             value={sifre}
             onChangeText={setSifre}
             secureTextEntry={sifreGizli}
@@ -114,16 +120,16 @@ export default function GirisEkrani() {
             contentStyle={styles.buttonContent}
             labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
-            Giris Yap
+            Giriş Yap
           </Button>
 
           <View style={styles.linkRow}>
             <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-              Hesabiniz yok mu?{' '}
+              Hesabınız yok mu?{' '}
             </Text>
             <Link href="/(auth)/kayit">
               <Text variant="bodyMedium" style={{ color: theme.colors.primary, fontWeight: '700' }}>
-                Kayit Ol
+                Kayıt Ol
               </Text>
             </Link>
           </View>
@@ -140,25 +146,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.xxl,
   },
+  brandBand: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '48%',
+    backgroundColor: appColors.ink,
+  },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: spacing.xl,
     gap: spacing.sm,
   },
-  iconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
+  logo: {
+    width: 112,
+    height: 112,
+    borderRadius: 26,
+    marginBottom: spacing.md,
   },
   title: {
-    fontWeight: '700',
+    fontWeight: '900',
     fontSize: 32,
+    color: '#FFF7ED',
+  },
+  subtitle: {
+    color: '#C8B6A6',
   },
   form: {
     gap: spacing.lg,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    padding: spacing.xl,
+    ...shadows.card,
   },
   input: {
     backgroundColor: 'transparent',

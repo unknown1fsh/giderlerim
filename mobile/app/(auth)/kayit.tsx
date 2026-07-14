@@ -1,18 +1,15 @@
 import { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Image, View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Text, TextInput, Button, useTheme, HelperText } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { services } from '../../lib/apiClient';
-import { apiHataMesaji } from '../../lib/apiError';
 import { useAuthStore } from '../../lib/stores';
-import { spacing, radius } from '../../theme';
+import { appColors, spacing, radius, shadows } from '../../theme';
+import type { KullaniciResponse } from '@giderlerim/shared/types/kullanici.types';
 
 export default function KayitEkrani() {
   const theme = useTheme();
   const girisYap = useAuthStore((s) => s.girisYap);
-  const kullaniciGuncelle = useAuthStore((s) => s.kullaniciGuncelle);
   const [ad, setAd] = useState('');
   const [soyad, setSoyad] = useState('');
   const [email, setEmail] = useState('');
@@ -23,26 +20,32 @@ export default function KayitEkrani() {
 
   const handleKayit = async () => {
     if (!ad || !soyad || !email || !sifre) {
-      setHata('Tum alanlari doldurun.');
+      setHata('Tüm alanları doldurun.');
       return;
     }
     if (sifre.length < 8) {
-      setHata('Sifre en az 8 karakter olmalidir.');
+      setHata('Şifre en az 8 karakter olmalıdır.');
       return;
     }
     setHata('');
     setYukleniyor(true);
     try {
-      const response = await services.auth.kayitOl({ ad, soyad, email, sifre });
-      const { accessToken, refreshToken } = response.data;
-      girisYap(accessToken, refreshToken, {} as any);
-      try {
-        const profilRes = await services.auth.beniBul();
-        kullaniciGuncelle(profilRes.data);
-      } catch {}
+      // Backend hazır olana kadar kayıt ekranı yerel demo oturumu açar.
+      // Eski akış: services.auth.kayitOl(...) ve services.auth.beniBul().
+      const demoKullanici: KullaniciResponse = {
+        id: 1,
+        ad,
+        soyad,
+        email,
+        plan: 'ULTRA',
+        paraBirimi: 'TRY',
+        avatarUrl: null,
+        adminMi: true,
+      };
+      girisYap('demo-access-token', 'demo-refresh-token', demoKullanici);
       router.replace('/(tabs)');
-    } catch (err: unknown) {
-      setHata(apiHataMesaji(err, 'Kayit basarisiz. Lutfen tekrar deneyin.'));
+    } catch {
+      setHata('Demo kayıt başlatılamadı. Lütfen tekrar deneyin.');
     } finally {
       setYukleniyor(false);
     }
@@ -50,6 +53,7 @@ export default function KayitEkrani() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <View style={styles.brandBand} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -59,22 +63,16 @@ export default function KayitEkrani() {
           keyboardShouldPersistTaps="handled"
         >
         <View style={styles.header}>
-          <View style={[styles.iconCircle, { backgroundColor: theme.colors.primaryContainer }]}>
-            <MaterialCommunityIcons
-              name="account-plus-outline"
-              size={48}
-              color={theme.colors.primary}
-            />
-          </View>
-          <Text variant="headlineLarge" style={[styles.title, { color: theme.colors.primary }]}>
+          <Image source={require('../../assets/icon.png')} style={styles.logo} />
+          <Text variant="headlineLarge" style={styles.title}>
             Giderlerim
           </Text>
-          <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
-            Yeni hesap olusturun
+          <Text variant="bodyLarge" style={styles.subtitle}>
+            Yeni hesabınızı oluşturun.
           </Text>
         </View>
 
-        <View style={styles.form}>
+        <View style={[styles.form, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline }]}>
           <View style={styles.row}>
             <TextInput
               label="Ad"
@@ -108,7 +106,7 @@ export default function KayitEkrani() {
           />
 
           <TextInput
-            label="Sifre"
+            label="Şifre"
             value={sifre}
             onChangeText={setSifre}
             secureTextEntry={sifreGizli}
@@ -142,16 +140,16 @@ export default function KayitEkrani() {
             contentStyle={styles.buttonContent}
             labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
-            Kayit Ol
+            Kayıt Ol
           </Button>
 
           <View style={styles.linkRow}>
             <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-              Zaten hesabiniz var mi?{' '}
+              Zaten hesabınız var mı?{' '}
             </Text>
             <Link href="/(auth)/giris">
               <Text variant="bodyMedium" style={{ color: theme.colors.primary, fontWeight: '700' }}>
-                Giris Yap
+                Giriş Yap
               </Text>
             </Link>
           </View>
@@ -168,25 +166,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: spacing.xxl,
   },
+  brandBand: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '45%',
+    backgroundColor: appColors.ink,
+  },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: spacing.xl,
     gap: spacing.sm,
   },
-  iconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
+  logo: {
+    width: 104,
+    height: 104,
+    borderRadius: 24,
+    marginBottom: spacing.md,
   },
   title: {
-    fontWeight: '700',
+    fontWeight: '900',
     fontSize: 32,
+    color: '#FFF7ED',
+  },
+  subtitle: {
+    color: '#C8B6A6',
   },
   form: {
     gap: spacing.lg,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    padding: spacing.xl,
+    ...shadows.card,
   },
   row: {
     flexDirection: 'row',

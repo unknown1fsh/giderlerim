@@ -9,7 +9,7 @@ import { planYukseltmeUrl } from '../../../lib/googlePlayPlan';
 import { AiMesajBalonu } from '../../../components/AiMesajBalonu';
 import { SohbetOturumResponse, SohbetMesajiResponse } from '@giderlerim/shared/types/ai.types';
 import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
-import { spacing, radius } from '../../../theme';
+import { appColors, spacing, radius, shadows } from '../../../theme';
 
 export default function AiKocEkrani() {
   const theme = useTheme();
@@ -110,25 +110,25 @@ export default function AiKocEkrani() {
     const yukseltUrl = planYukseltmeUrl(plan);
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <View style={[styles.header, { borderBottomColor: theme.colors.outline + '40' }]}>
+        <View style={styles.header}>
           <View style={{ width: 48 }} />
           <Text
             variant="titleLarge"
-            style={{ fontWeight: '700', flex: 1, textAlign: 'center', color: theme.colors.onBackground }}
+            style={{ fontWeight: '900', flex: 1, textAlign: 'center', color: '#FFF7ED' }}
           >
-            AI Koc
+            AI Koç
           </Text>
           <View style={{ width: 48 }} />
         </View>
         <View style={styles.center}>
-          <View style={[styles.lockCircle, { backgroundColor: theme.colors.primaryContainer }]}>
+          <View style={[styles.lockCircle, { backgroundColor: appColors.ink2, borderColor: '#2B211A' }]}>
             <MaterialCommunityIcons name="lock-outline" size={48} color={theme.colors.primary} />
           </View>
           <Text
             variant="headlineSmall"
-            style={{ fontWeight: '700', color: theme.colors.onBackground, marginTop: spacing.xl }}
+            style={{ fontWeight: '900', color: theme.colors.onBackground, marginTop: spacing.xl }}
           >
-            Pro Plani Gerekiyor
+            Pro Planı Gerekiyor
           </Text>
           <Text
             variant="bodyMedium"
@@ -140,7 +140,7 @@ export default function AiKocEkrani() {
               lineHeight: 22,
             }}
           >
-            AI Finansal Koc icin Pro aboneligi Google Play uzerinden satin alinmalidir.
+            AI Finansal Koç için Pro aboneliği Google Play üzerinden satın alınmalıdır.
           </Text>
           <Button
             mode="contained"
@@ -150,7 +150,7 @@ export default function AiKocEkrani() {
             icon="arrow-up-bold-circle-outline"
             labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
-            Google Play'de Pro'ya gec
+            Google Play ile Proya geç
           </Button>
         </View>
       </SafeAreaView>
@@ -169,7 +169,7 @@ export default function AiKocEkrani() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { borderBottomColor: theme.colors.outline + '40' }]}>
+      <View style={styles.header}>
         <Menu
           visible={menuGorunur}
           onDismiss={() => setMenuGorunur(false)}
@@ -178,7 +178,7 @@ export default function AiKocEkrani() {
               icon="chat-processing-outline"
               size={24}
               onPress={() => setMenuGorunur(true)}
-              iconColor={theme.colors.onBackground}
+              iconColor="#FFF7ED"
             />
           }
           anchorPosition="bottom"
@@ -206,16 +206,16 @@ export default function AiKocEkrani() {
 
         <Text
           variant="titleLarge"
-          style={{ fontWeight: '700', flex: 1, textAlign: 'center', color: theme.colors.onBackground }}
+          style={{ fontWeight: '900', flex: 1, textAlign: 'center', color: '#FFF7ED' }}
         >
-          AI Koc
+          AI Koç
         </Text>
 
         <IconButton
           icon="plus-circle-outline"
           size={24}
           onPress={yeniOturumBaslat}
-          iconColor={theme.colors.primary}
+          iconColor={appColors.orange}
         />
       </View>
 
@@ -234,7 +234,7 @@ export default function AiKocEkrani() {
 
       {!aktifOturum && mesajlar.length === 0 ? (
         <View style={styles.center}>
-          <View style={[styles.robotCircle, { backgroundColor: theme.colors.primaryContainer }]}>
+          <View style={[styles.robotCircle, { backgroundColor: appColors.ink2, borderColor: '#2B211A' }]}>
             <MaterialCommunityIcons
               name="robot-happy-outline"
               size={56}
@@ -243,9 +243,9 @@ export default function AiKocEkrani() {
           </View>
           <Text
             variant="titleMedium"
-            style={{ fontWeight: '700', color: theme.colors.onBackground, marginTop: spacing.xl }}
+            style={{ fontWeight: '900', color: theme.colors.onBackground, marginTop: spacing.xl }}
           >
-            AI Finansal Kociniz
+            AI Finansal Koçunuz
           </Text>
           <Text
             variant="bodyMedium"
@@ -257,7 +257,7 @@ export default function AiKocEkrani() {
               lineHeight: 22,
             }}
           >
-            Harcamalariniz hakkinda sorular sorun, butce tavsiyeleri alin ve finansal hedeflerinize ulasin.
+            Harcamalarınız hakkında sorular sorun, bütçe tavsiyeleri alın ve finansal hedeflerinize ulaşın.
           </Text>
           <Button
             mode="contained"
@@ -267,7 +267,7 @@ export default function AiKocEkrani() {
             icon="chat-plus"
             labelStyle={{ fontSize: 16, fontWeight: '600' }}
           >
-            Sohbet Baslat
+            Sohbet Başlat
           </Button>
         </View>
       ) : (
@@ -282,7 +282,7 @@ export default function AiKocEkrani() {
           ListEmptyComponent={
             <View style={styles.center}>
               <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                Bir mesaj gondererek sohbeti baslatin
+                Bir mesaj göndererek sohbeti başlatın
               </Text>
             </View>
           }
@@ -293,7 +293,7 @@ export default function AiKocEkrani() {
         <View style={styles.typingIndicator}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
           <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginLeft: spacing.sm }}>
-            AI dusunuyor...
+            AI düşünüyor...
           </Text>
         </View>
       )}
@@ -302,11 +302,11 @@ export default function AiKocEkrani() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-        <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.outline + '40' }]}>
+        <View style={[styles.inputContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.outline }]}>
           <TextInput
             value={mesaj}
             onChangeText={setMesaj}
-            placeholder="Mesajinizi yazin..."
+            placeholder="Mesajınızı yazın..."
             mode="outlined"
             style={styles.input}
             outlineStyle={{ borderRadius: radius.xl }}
@@ -338,7 +338,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xs,
     paddingVertical: spacing.xs,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    minHeight: 56,
+    minHeight: 60,
+    backgroundColor: appColors.ink,
+    borderBottomColor: '#2B211A',
   },
   robotCircle: {
     width: 104,
@@ -346,6 +348,8 @@ const styles = StyleSheet.create({
     borderRadius: 52,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    ...shadows.card,
   },
   lockCircle: {
     width: 96,
@@ -353,6 +357,8 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    ...shadows.card,
   },
   oturumBilgi: {
     paddingHorizontal: spacing.lg,
@@ -373,6 +379,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
+    ...shadows.lift,
   },
   input: {
     maxHeight: 120,

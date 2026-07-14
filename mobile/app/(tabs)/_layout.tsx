@@ -1,36 +1,40 @@
 import { Tabs } from 'expo-router';
-import { useTheme } from 'react-native-paper';
 import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useUyariSayac } from '../../lib/hooks';
+import { appColors, radius } from '../../theme';
 
 export default function TabLayout() {
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { data: uyariSayisi } = useUyariSayac();
 
   const bottomInset = Math.max(insets.bottom, 4);
-  const tabBarHeight = 56 + bottomInset;
+  const tabBarHeight = 64 + bottomInset;
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+        tabBarActiveTintColor: appColors.orange,
+        tabBarInactiveTintColor: '#9B8B7D',
         tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.outline,
+          position: 'absolute',
+          left: 12,
+          right: 12,
+          bottom: Math.max(bottomInset - 2, 8),
+          backgroundColor: appColors.ink,
+          borderTopColor: '#2B211A',
           borderTopWidth: StyleSheet.hairlineWidth,
+          borderRadius: radius.xl,
           height: tabBarHeight,
-          paddingBottom: bottomInset,
-          paddingTop: 6,
-          elevation: 8,
+          paddingBottom: bottomInset > 10 ? bottomInset - 4 : 10,
+          paddingTop: 8,
+          elevation: 14,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.08,
-          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: 0.22,
+          shadowRadius: 20,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -45,7 +49,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Ozet',
+          title: 'Özet',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="view-dashboard-outline" size={size} color={color} />
           ),
@@ -63,7 +67,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ai-koc"
         options={{
-          title: 'AI Koc',
+          title: 'AI Koç',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="robot-outline" size={size} color={color} />
           ),
@@ -72,7 +76,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="butceler"
         options={{
-          title: 'Butceler',
+          title: 'Bütçe',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="chart-pie" size={size} color={color} />
           ),
@@ -81,7 +85,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="menu"
         options={{
-          title: 'Menu',
+          title: 'Menü',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="cog-outline" size={size} color={color} />
           ),

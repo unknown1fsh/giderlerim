@@ -2,7 +2,7 @@ import { View, StyleSheet, Pressable } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { GiderResponse } from '@giderlerim/shared/types/gider.types';
 import { formatPara } from '@giderlerim/shared/utils/formatters';
-import { spacing, radius } from '../theme';
+import { appColors, spacing, radius, shadows } from '../theme';
 
 interface Props {
   gider: GiderResponse;
@@ -21,17 +21,18 @@ export function GiderKarti({ gider, onPress }: Props) {
         styles.container,
         {
           backgroundColor: theme.colors.surface,
-          opacity: pressed ? 0.7 : 1,
+          borderColor: theme.colors.outline,
+          opacity: pressed ? 0.72 : 1,
         },
       ]}
     >
-      <View style={[styles.ikon, { backgroundColor: gider.kategori.renk + '18' }]}>
+      <View style={styles.ikon}>
         <Text style={{ fontSize: 22 }}>{gider.kategori.ikon}</Text>
       </View>
       <View style={styles.detay}>
         <Text
           variant="bodyMedium"
-          style={{ fontWeight: '600', color: theme.colors.onSurface }}
+          style={{ fontWeight: '800', color: theme.colors.onSurface }}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
@@ -42,22 +43,22 @@ export function GiderKarti({ gider, onPress }: Props) {
           style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}
           numberOfLines={1}
         >
-          {tarihStr} · {gider.kategori.ad}
+          {tarihStr} - {gider.kategori.ad}
         </Text>
       </View>
       <View style={styles.tutarContainer}>
         <Text
           variant="bodyMedium"
-          style={{ fontWeight: '700', color: theme.colors.onSurface }}
+          style={{ fontWeight: '900', color: theme.colors.onSurface }}
           numberOfLines={1}
         >
           {formatPara(gider.tutar)}
         </Text>
-        {gider.anormalMi && (
-          <Text variant="labelSmall" style={{ color: theme.colors.error, marginTop: 2 }}>
+        {gider.anormalMi ? (
+          <Text variant="labelSmall" style={{ color: theme.colors.error, marginTop: 2, fontWeight: '800' }}>
             Anormal
           </Text>
-        )}
+        ) : null}
       </View>
     </Pressable>
   );
@@ -68,20 +69,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.lg,
-    borderRadius: radius.lg,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    minHeight: 72,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    minHeight: 78,
+    ...shadows.card,
   },
   ikon: {
     width: 48,
     height: 48,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: appColors.ink,
   },
   detay: {
     flex: 1,

@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useButceEkle, useKategoriler } from '../../../lib/hooks';
 import { ScreenHeader } from '../../../components/ScreenHeader';
-import { spacing, radius } from '../../../theme';
+import { AppCard } from '../../../components/AppChrome';
+import { appColors, spacing, radius } from '../../../theme';
 
 export default function ButceEkleEkrani() {
   const theme = useTheme();
@@ -20,8 +21,8 @@ export default function ButceEkleEkrani() {
   const [hata, setHata] = useState('');
 
   const handleKaydet = async () => {
-    if (!secilenKategori) { setHata('Kategori secin.'); return; }
-    if (!limitTutar || parseFloat(limitTutar) <= 0) { setHata('Gecerli limit girin.'); return; }
+    if (!secilenKategori) { setHata('Kategori seçin.'); return; }
+    if (!limitTutar || parseFloat(limitTutar) <= 0) { setHata('Geçerli limit girin.'); return; }
     setHata('');
 
     try {
@@ -34,7 +35,7 @@ export default function ButceEkleEkrani() {
       });
       router.back();
     } catch (err: any) {
-      setHata(err.response?.data?.message || 'Butce eklenemedi.');
+      setHata(err.response?.data?.message || 'Bütçe eklenemedi.');
     }
   };
 
@@ -42,7 +43,7 @@ export default function ButceEkleEkrani() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScreenHeader baslik="Butce Ekle" />
+      <ScreenHeader baslik="Bütçe Ekle" />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
@@ -50,6 +51,7 @@ export default function ButceEkleEkrani() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <AppCard style={styles.formCard}>
           <Text variant="labelLarge" style={styles.sectionLabel}>Kategori</Text>
           <View style={styles.chipContainer}>
             {kategoriler?.map((kat) => (
@@ -67,7 +69,7 @@ export default function ButceEkleEkrani() {
           </View>
 
           <TextInput
-            label="Aylik Limit (TL)"
+            label="Aylık Limit (TL)"
             value={limitTutar}
             onChangeText={setLimitTutar}
             keyboardType="decimal-pad"
@@ -78,7 +80,7 @@ export default function ButceEkleEkrani() {
           />
 
           <TextInput
-            label="Uyari Yuzdesi (%)"
+            label="Uyarı Yüzdesi (%)"
             value={uyariYuzdesi}
             onChangeText={setUyariYuzdesi}
             keyboardType="number-pad"
@@ -101,6 +103,7 @@ export default function ButceEkleEkrani() {
           >
             Kaydet
           </Button>
+          </AppCard>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -114,6 +117,10 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     paddingBottom: 40,
   },
+  formCard: {
+    padding: spacing.lg,
+    gap: spacing.lg,
+  },
   sectionLabel: {
     fontWeight: '600',
   },
@@ -124,6 +131,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderRadius: radius.xl,
+    borderColor: appColors.orange,
   },
   input: {
     backgroundColor: 'transparent',

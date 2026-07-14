@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#465FFF"
+      "backgroundColor": "#0B0B0F"
     },
     "ios": {
       "supportsTablet": true,
@@ -22,10 +22,9 @@
       }
     },
     "android": {
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#465FFF"
+        "backgroundColor": "#0B0B0F"
       },
       "package": "com.scinar.giderlerim",
       "permissions": [
@@ -47,7 +46,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#465FFF"
+          "color": "#FF7A1A"
         }
       ],
       "expo-web-browser"

@@ -1,7 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { SohbetMesajiResponse } from '@giderlerim/shared/types/ai.types';
-import { spacing, radius } from '../theme';
+import { appColors, spacing, radius } from '../theme';
 
 interface Props {
   mesaj: SohbetMesajiResponse;
@@ -19,7 +19,8 @@ export function AiMesajBalonu({ mesaj }: Props) {
         {
           backgroundColor: kullaniciMi
             ? theme.colors.primary
-            : theme.colors.surfaceVariant,
+            : theme.colors.surface,
+          borderColor: kullaniciMi ? appColors.orange2 : theme.colors.outline,
         },
       ]}
     >
@@ -61,6 +62,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: radius.xl,
+    borderWidth: 1,
     marginVertical: spacing.xs,
   },
   kullanici: {

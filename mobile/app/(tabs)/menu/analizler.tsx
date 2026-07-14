@@ -127,7 +127,7 @@ export default function AnalizlerEkrani() {
                 onPress={() => Linking.openURL(yukseltUrl)}
                 icon="arrow-right"
               >
-                Google Play'de abonelik
+                Google Play aboneliği
               </Button>
             </Card.Content>
           </Card>

@@ -12,7 +12,8 @@ import { services } from '../../../lib/apiClient';
 import { BelgeYuklemeResponse } from '@giderlerim/shared/services/belgeService';
 import { useQueryClient } from '@tanstack/react-query';
 import { ScreenHeader } from '../../../components/ScreenHeader';
-import { spacing, radius } from '../../../theme';
+import { AppCard } from '../../../components/AppChrome';
+import { appColors, spacing, radius } from '../../../theme';
 
 type EkleModu = 'manuel' | 'fis';
 
@@ -44,8 +45,8 @@ export default function GiderEkleEkrani() {
   }, []);
 
   const handleKaydet = async () => {
-    if (!secilenKategori) { setHata('Kategori secin.'); return; }
-    if (!form.tutar || form.tutar <= 0) { setHata('Gecerli bir tutar girin.'); return; }
+    if (!secilenKategori) { setHata('Kategori seçin.'); return; }
+    if (!form.tutar || form.tutar <= 0) { setHata('Geçerli bir tutar girin.'); return; }
     setHata('');
 
     try {
@@ -116,7 +117,7 @@ export default function GiderEkleEkrani() {
         }
       }
     } catch (err: any) {
-      setFisHata(err.response?.data?.message || 'Fis yuklenemedi. Lutfen tekrar deneyin.');
+      setFisHata(err.response?.data?.message || 'Fiş yüklenemedi. Lütfen tekrar deneyin.');
       setFisYukleniyor(false);
     }
   };
@@ -136,8 +137,8 @@ export default function GiderEkleEkrani() {
 
   const getDurumMetin = (durum: string) => {
     switch (durum) {
-      case 'ISLENIYOR': return 'Isleniyor...';
-      case 'TAMAMLANDI': return 'Tamamlandi';
+      case 'ISLENIYOR': return 'İşleniyor...';
+      case 'TAMAMLANDI': return 'Tamamlandı';
       case 'HATA': return 'Hata';
       default: return durum;
     }
@@ -159,7 +160,7 @@ export default function GiderEkleEkrani() {
             onValueChange={(v) => setMod(v as EkleModu)}
             buttons={[
               { value: 'manuel', label: 'Manuel Ekle', icon: 'pencil' },
-              { value: 'fis', label: 'Fis ile Ekle', icon: 'camera' },
+              { value: 'fis', label: 'Fiş ile Ekle', icon: 'camera' },
             ]}
           />
         </View>
@@ -169,6 +170,7 @@ export default function GiderEkleEkrani() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <AppCard style={styles.formCard}>
           {mod === 'manuel' ? (
             <>
               <TextInput
@@ -183,7 +185,7 @@ export default function GiderEkleEkrani() {
               />
 
               <TextInput
-                label="Aciklama"
+                label="Açıklama"
                 value={form.aciklama || ''}
                 onChangeText={(v) => setForm({ ...form, aciklama: v })}
                 mode="outlined"
@@ -220,7 +222,7 @@ export default function GiderEkleEkrani() {
               </View>
 
               <Text variant="labelLarge" style={styles.sectionLabel}>
-                Odeme Yontemi
+                Ödeme Yöntemi
               </Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={true}>
                 <SegmentedButtons
@@ -232,7 +234,7 @@ export default function GiderEkleEkrani() {
               </ScrollView>
 
               <TextInput
-                label="Notlar (istege bagli)"
+                label="Notlar (isteğe bağlı)"
                 value={form.notlar || ''}
                 onChangeText={(v) => setForm({ ...form, notlar: v })}
                 mode="outlined"
@@ -258,8 +260,8 @@ export default function GiderEkleEkrani() {
             </>
           ) : (
             <>
-              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: spacing.md }}>
-                Fis veya fatura fotografini cekin ya da galeriden secin. AI otomatik olarak gider bilgilerini tanimlayip kaydedecek.
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: spacing.md, lineHeight: 21 }}>
+                Fiş veya fatura fotoğrafını çekin ya da galeriden seçin. AI gider bilgilerini tanımlayıp otomatik kaydeder.
               </Text>
 
               <View style={styles.buttonRow}>
@@ -306,7 +308,7 @@ export default function GiderEkleEkrani() {
                   icon="upload"
                   labelStyle={{ fontSize: 16, fontWeight: '600' }}
                 >
-                  Yukle ve Tara
+                  Yükle ve Tara
                 </Button>
               )}
 
@@ -314,7 +316,7 @@ export default function GiderEkleEkrani() {
                 <View style={styles.durumContainer}>
                   <ActivityIndicator size="small" color={theme.colors.primary} />
                   <Text variant="bodyMedium" style={{ marginLeft: spacing.md, color: theme.colors.onSurfaceVariant }}>
-                    Fis taraniyor, giderler cikartiliyor...
+                    Fiş taranıyor, giderler çıkartılıyor...
                   </Text>
                 </View>
               )}
@@ -332,14 +334,14 @@ export default function GiderEkleEkrani() {
                     {fisDurum.durum === 'TAMAMLANDI' && (
                       <>
                         <Text variant="bodyMedium" style={{ color: '#22c55e' }}>
-                          {fisDurum.islenenSatir} gider otomatik olarak eklendi!
+                          {fisDurum.islenenSatir} gider otomatik olarak eklendi.
                         </Text>
                         <Button
                           mode="contained"
                           onPress={() => router.back()}
                           style={{ marginTop: spacing.sm, borderRadius: radius.md }}
                         >
-                          Giderlere Don
+                          Giderlere Dön
                         </Button>
                       </>
                     )}
@@ -347,7 +349,7 @@ export default function GiderEkleEkrani() {
                     {fisDurum.durum === 'HATA' && (
                       <>
                         <Text variant="bodySmall" style={{ color: theme.colors.error }}>
-                          {fisDurum.hataMesaji || 'Fis islenirken hata olustu.'}
+                          {fisDurum.hataMesaji || 'Fiş işlenirken hata oluştu.'}
                         </Text>
                         <Button
                           mode="outlined"
@@ -365,6 +367,7 @@ export default function GiderEkleEkrani() {
               {fisHata ? <HelperText type="error" visible>{fisHata}</HelperText> : null}
             </>
           )}
+          </AppCard>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -382,6 +385,10 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     paddingBottom: 40,
   },
+  formCard: {
+    padding: spacing.lg,
+    gap: spacing.lg,
+  },
   input: {
     backgroundColor: 'transparent',
   },
@@ -396,6 +403,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderRadius: radius.xl,
+    borderColor: appColors.orange,
   },
   saveButton: {
     marginTop: spacing.sm,

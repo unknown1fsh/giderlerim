@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { ButceOzetResponse } from '@giderlerim/shared/types/butce.types';
 import { formatPara } from '@giderlerim/shared/utils/formatters';
-import { spacing, radius } from '../theme';
+import { appColors, spacing, radius } from '../theme';
 
 interface Props {
   butce: ButceOzetResponse;
@@ -14,13 +14,13 @@ export function ButceProgressBar({ butce }: Props) {
   const renk = butce.limitAsildi
     ? theme.colors.error
     : butce.uyariEsigi
-      ? '#f59e0b'
+      ? appColors.warning
       : theme.colors.primary;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text variant="bodyMedium" style={{ flex: 1, color: theme.colors.onSurface }}>
+        <Text variant="bodyMedium" style={{ flex: 1, color: theme.colors.onSurface, fontWeight: '800' }}>
           {butce.kategori.ikon} {butce.kategori.ad}
         </Text>
         <Text variant="labelSmall" style={{ color: renk, fontWeight: '700' }}>
@@ -50,12 +50,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   track: {
-    height: 10,
-    borderRadius: radius.sm,
+    height: 12,
+    borderRadius: radius.full,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    borderRadius: radius.sm,
+    borderRadius: radius.full,
   },
 });

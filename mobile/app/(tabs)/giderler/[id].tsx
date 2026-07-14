@@ -1,11 +1,12 @@
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
-import { Text, Card, Button, useTheme, Divider } from 'react-native-paper';
+import { Text, Button, useTheme, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useGiderler, useGiderSil } from '../../../lib/hooks';
 import { formatPara, ODEME_YONTEMI_ETIKETLERI } from '@giderlerim/shared/utils/formatters';
 import { ScreenHeader } from '../../../components/ScreenHeader';
-import { spacing, radius } from '../../../theme';
+import { AppCard, EmptyState } from '../../../components/AppChrome';
+import { appColors, spacing, radius } from '../../../theme';
 
 export default function GiderDetayEkrani() {
   const theme = useTheme();
@@ -16,8 +17,8 @@ export default function GiderDetayEkrani() {
   const gider = data?.icerik?.find((g) => g.id === Number(id));
 
   const handleSil = () => {
-    Alert.alert('Gider Sil', 'Bu gideri silmek istediginize emin misiniz?', [
-      { text: 'Iptal', style: 'cancel' },
+    Alert.alert('Gider Sil', 'Bu gideri silmek istediğinize emin misiniz?', [
+      { text: 'İptal', style: 'cancel' },
       {
         text: 'Sil',
         style: 'destructive',
@@ -32,25 +33,21 @@ export default function GiderDetayEkrani() {
   if (!gider) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <ScreenHeader baslik="Gider Detayi" />
-        <View style={styles.empty}>
-          <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
-            Gider bulunamadi
-          </Text>
-        </View>
+        <ScreenHeader baslik="Gider Detayı" />
+        <EmptyState icon="receipt-text-remove-outline" title="Gider bulunamadı" />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScreenHeader baslik="Gider Detayi" />
+      <ScreenHeader baslik="Gider Detayı" />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-          <Card.Content style={styles.cardContent}>
+        <AppCard>
+          <View style={styles.cardContent}>
             <View style={styles.amountRow}>
-              <View style={[styles.ikonCircle, { backgroundColor: gider.kategori.renk + '18' }]}>
+              <View style={styles.ikonCircle}>
                 <Text style={{ fontSize: 28 }}>{gider.kategori.ikon}</Text>
               </View>
               <Text variant="headlineMedium" style={{ fontWeight: '700', color: theme.colors.primary }}>
@@ -62,19 +59,19 @@ export default function GiderDetayEkrani() {
 
             <DetailRow label="Kategori" value={gider.kategori.ad} theme={theme} />
             <DetailRow label="Tarih" value={gider.tarih} theme={theme} />
-            <DetailRow label="Odeme" value={ODEME_YONTEMI_ETIKETLERI[gider.odemeYontemi] || gider.odemeYontemi} theme={theme} />
-            {gider.aciklama && <DetailRow label="Aciklama" value={gider.aciklama} theme={theme} />}
+            <DetailRow label="Ödeme" value={ODEME_YONTEMI_ETIKETLERI[gider.odemeYontemi] || gider.odemeYontemi} theme={theme} />
+            {gider.aciklama && <DetailRow label="Açıklama" value={gider.aciklama} theme={theme} />}
             {gider.notlar && <DetailRow label="Notlar" value={gider.notlar} theme={theme} />}
-            <DetailRow label="Giris Turu" value={gider.girisTuru} theme={theme} />
+            <DetailRow label="Giriş Türü" value={gider.girisTuru} theme={theme} />
             {gider.anormalMi && (
               <View style={[styles.anormalBadge, { backgroundColor: theme.colors.error + '15' }]}>
                 <Text variant="labelSmall" style={{ color: theme.colors.error, fontWeight: '600' }}>
-                  Anormal harcama olarak isaretlendi
+                  Anormal harcama olarak işaretlendi
                 </Text>
               </View>
             )}
-          </Card.Content>
-        </Card>
+          </View>
+        </AppCard>
 
         <Button
           mode="outlined"
@@ -115,14 +112,6 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     gap: spacing.lg,
   },
-  card: {
-    borderRadius: radius.lg,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-  },
   cardContent: {
     padding: spacing.xl,
   },
@@ -137,6 +126,7 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: appColors.ink,
   },
   detailRow: {
     flexDirection: 'row',
@@ -154,10 +144,5 @@ const styles = StyleSheet.create({
   deleteButton: {
     borderColor: '#ef4444',
     borderRadius: radius.md,
-  },
-  empty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

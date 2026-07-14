@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { Stack } from 'expo-router';
 import { PaperProvider } from 'react-native-paper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
