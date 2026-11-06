@@ -6,8 +6,8 @@ import { useGiderler, useGiderEkle, useGiderSil } from '@/hooks/useGiderler';
 import { useKategoriler } from '@/hooks/useKategoriler';
 import { giderService } from '@/services/giderService';
 import { useQueryClient } from '@tanstack/react-query';
-import { GiderFiltre, GiderOlusturRequest, GiderResponse, OdemeYontemi } from '@/types/gider.types';
-import type { KategoriResponse } from '@/types/kategori.types';
+import type { GiderFiltre, GiderOlusturRequest, GiderResponse, OdemeYontemi } from '@giderlerim/shared/types/gider.types';
+import type { KategoriResponse } from '@giderlerim/shared/types/kategori.types';
 import { useAuthStore } from '@/stores/authStore';
 
 const ODEME_YONTEMLERI: { value: OdemeYontemi; label: string }[] = [

@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { shopierOdemeUrlForPlanKapisi } from '@/config/shopier';
 import { useAuthStore } from '@/stores/authStore';
-import { PlanTuru } from '@/types/kullanici.types';
+import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
 
 const PLAN_SIRALAMA: Record<PlanTuru, number> = {
   FREE: 0,

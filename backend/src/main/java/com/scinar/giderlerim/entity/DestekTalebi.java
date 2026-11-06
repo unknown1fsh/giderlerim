@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -34,16 +36,19 @@ public class DestekTalebi {
     private String mesaj;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(columnDefinition = "destek_durumu", nullable = false)
     @Builder.Default
     private DestekDurumu durum = DestekDurumu.ACIK;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(columnDefinition = "destek_onceligi", nullable = false)
     @Builder.Default
     private DestekOnceligi oncelik = DestekOnceligi.NORMAL;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(columnDefinition = "destek_kategorisi", nullable = false)
     @Builder.Default
     private DestekKategorisi kategori = DestekKategorisi.GENEL;

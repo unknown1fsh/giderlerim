@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -37,6 +39,7 @@ public class Gider {
     private BigDecimal tutar;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "para_birimi", columnDefinition = "para_birimi", nullable = false)
     @Builder.Default
     private ParaBirimi paraBirimi = ParaBirimi.TRY;
@@ -51,11 +54,13 @@ public class Gider {
     private LocalDate tarih;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "odeme_yontemi", columnDefinition = "odeme_yontemi", nullable = false)
     @Builder.Default
     private OdemeYontemi odemeYontemi = OdemeYontemi.NAKIT;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "giris_turu", columnDefinition = "giris_turu", nullable = false)
     @Builder.Default
     private GirisTuru girisTuru = GirisTuru.MANUEL;

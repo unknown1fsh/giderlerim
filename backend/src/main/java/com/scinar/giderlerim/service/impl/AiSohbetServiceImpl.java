@@ -301,7 +301,7 @@ public class AiSohbetServiceImpl implements AiSohbetService {
     }
 
     private void planKontrolEt(Kullanici kullanici) {
-        if (kullanici.getPlan() == PlanTuru.FREE) {
+        if (!kullanici.getPlan().enAz(PlanTuru.PREMIUM)) {
             throw new PlanLimitiAsimException(
                     "AI Sohbet özelliği yalnızca PREMIUM ve ULTRA plan kullanıcılarına sunulmaktadır. " +
                     "Planınızı yükselterek bu özelliğe erişebilirsiniz."

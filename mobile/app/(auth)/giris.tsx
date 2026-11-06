@@ -4,28 +4,17 @@ import { Text, TextInput, Button, useTheme, HelperText } from 'react-native-pape
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { useAuthStore } from '../../lib/stores';
+import apiClient, { services } from '../../lib/apiClient';
+import { girisVeProfilGetir } from '../../lib/authenticate';
 import { appColors, spacing, radius, shadows } from '../../theme';
+import type { ApiResponse } from '@giderlerim/shared/types/api.types';
 import type { KullaniciResponse } from '@giderlerim/shared/types/kullanici.types';
-
-const DEMO_EMAIL = 'demo@giderlerim.app';
-const DEMO_SIFRE = 'demo1234';
-
-const demoKullanici: KullaniciResponse = {
-  id: 1,
-  ad: 'Demo',
-  soyad: 'Kullanıcı',
-  email: DEMO_EMAIL,
-  plan: 'ULTRA',
-  paraBirimi: 'TRY',
-  avatarUrl: null,
-  adminMi: true,
-};
 
 export default function GirisEkrani() {
   const theme = useTheme();
   const girisYap = useAuthStore((s) => s.girisYap);
-  const [email, setEmail] = useState(DEMO_EMAIL);
-  const [sifre, setSifre] = useState(DEMO_SIFRE);
+  const [email, setEmail] = useState('');
+  const [sifre, setSifre] = useState('');
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata] = useState('');
   const [sifreGizli, setSifreGizli] = useState(true);
@@ -35,19 +24,24 @@ export default function GirisEkrani() {
       setHata('Email ve şifre gereklidir.');
       return;
     }
-    if (email.trim().toLowerCase() !== DEMO_EMAIL || sifre !== DEMO_SIFRE) {
-      setHata(`Demo giriş için ${DEMO_EMAIL} / ${DEMO_SIFRE} kullanın.`);
-      return;
-    }
     setHata('');
     setYukleniyor(true);
     try {
-      // Backend hazır olana kadar mobil demo oturumu yerelde açılıyor.
-      // Eski akış: services.auth.girisYap(...) ve services.auth.beniBul().
-      girisYap('demo-access-token', 'demo-refresh-token', demoKullanici);
+      const profilGetir = async (accessToken: string) => {
+        const yanit = await apiClient.get<ApiResponse<KullaniciResponse>>('/kullanici/profil', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        return yanit.data.data;
+      };
+      const { tokenlar, kullanici } = await girisVeProfilGetir(
+        services.auth,
+        profilGetir,
+        { email: email.trim().toLowerCase(), sifre },
+      );
+      girisYap(tokenlar.accessToken, tokenlar.refreshToken, kullanici);
       router.replace('/(tabs)');
     } catch {
-      setHata('Demo giriş başlatılamadı. Lütfen tekrar deneyin.');
+      setHata('E-posta veya şifre hatalı.');
     } finally {
       setYukleniyor(false);
     }

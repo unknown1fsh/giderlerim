@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Pattern;
 
 public record SistemParametresiOlusturRequest(
         @NotBlank(message = "Anahtar boş olamaz")
+        @Pattern(regexp = "[a-z0-9]+(?:[.-][a-z0-9]+)*", message = "Anahtar yalnızca küçük harf, rakam, nokta ve tire içerebilir")
         String anahtar,
 
         @NotBlank(message = "Değer boş olamaz")

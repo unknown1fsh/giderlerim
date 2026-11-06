@@ -4,7 +4,10 @@ import { Text, TextInput, Button, useTheme, HelperText } from 'react-native-pape
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { useAuthStore } from '../../lib/stores';
+import apiClient, { services } from '../../lib/apiClient';
+import { kayitVeProfilGetir } from '../../lib/authenticate';
 import { appColors, spacing, radius, shadows } from '../../theme';
+import type { ApiResponse } from '@giderlerim/shared/types/api.types';
 import type { KullaniciResponse } from '@giderlerim/shared/types/kullanici.types';
 
 export default function KayitEkrani() {
@@ -30,22 +33,21 @@ export default function KayitEkrani() {
     setHata('');
     setYukleniyor(true);
     try {
-      // Backend hazır olana kadar kayıt ekranı yerel demo oturumu açar.
-      // Eski akış: services.auth.kayitOl(...) ve services.auth.beniBul().
-      const demoKullanici: KullaniciResponse = {
-        id: 1,
-        ad,
-        soyad,
-        email,
-        plan: 'ULTRA',
-        paraBirimi: 'TRY',
-        avatarUrl: null,
-        adminMi: true,
+      const profilGetir = async (accessToken: string) => {
+        const yanit = await apiClient.get<ApiResponse<KullaniciResponse>>('/kullanici/profil', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        return yanit.data.data;
       };
-      girisYap('demo-access-token', 'demo-refresh-token', demoKullanici);
+      const { tokenlar, kullanici } = await kayitVeProfilGetir(
+        services.auth,
+        profilGetir,
+        { ad: ad.trim(), soyad: soyad.trim(), email: email.trim().toLowerCase(), sifre },
+      );
+      girisYap(tokenlar.accessToken, tokenlar.refreshToken, kullanici);
       router.replace('/(tabs)');
     } catch {
-      setHata('Demo kayıt başlatılamadı. Lütfen tekrar deneyin.');
+      setHata('Kayıt oluşturulamadı. E-posta daha önce kullanılmış olabilir.');
     } finally {
       setYukleniyor(false);
     }

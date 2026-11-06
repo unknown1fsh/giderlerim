@@ -8,7 +8,7 @@ import {
   useUyariTumunuOkundu,
   useUyariSil,
 } from '@/hooks/useUyarilar';
-import type { UyariResponse, UyariTuru } from '@/types/uyari.types';
+import type { UyariResponse, UyariTuru } from '@giderlerim/shared/types/uyari.types';
 
 const UYARI_RENK: Record<UyariTuru, string> = {
   BUTCE_ASIMI: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',

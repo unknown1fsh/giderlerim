@@ -45,17 +45,10 @@ jobs:
             package-lock.json
 
       - name: Bağımlılıkları yükle
-        run: |
-          if [ -f "frontend/package.json" ]; then
-            cd frontend && npm ci
-          else
-            npm ci
-          fi
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --workspace giderlerim-web
 
       - name: Build
-        run: |
-          if [ -f "frontend/package.json" ]; then
-            cd frontend && npm run build
-          else
-            npm run build
-          fi
+        run: npm run build --workspace giderlerim-web

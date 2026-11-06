@@ -11,6 +11,7 @@ import com.scinar.giderlerim.exception.KayitBulunamadiException;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.security.JwtService;
 import com.scinar.giderlerim.service.AuthService;
+import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -28,18 +29,24 @@ public class AuthServiceImpl implements AuthService {
     private final KullaniciRepository kullaniciRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final SistemParametresiDegerService parametreler;
 
     @Override
     @Transactional
     public ApiResponse<TokenResponse> kayitOl(KayitRequest request) {
-        if (kullaniciRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Bu e-posta adresi zaten kullanılmaktadır: " + request.email());
+        if (!parametreler.mantiksal("yeni.kayit.aktif", true)) {
+            throw new IllegalStateException("Yeni kullanıcı kaydı geçici olarak kapalıdır.");
+        }
+
+        String normalizeEmail = request.email().toLowerCase().trim();
+        if (kullaniciRepository.existsByEmail(normalizeEmail)) {
+            throw new IllegalArgumentException("Bu e-posta adresi zaten kullanılmaktadır: " + normalizeEmail);
         }
 
         Kullanici yeniKullanici = Kullanici.builder()
                 .ad(request.ad())
                 .soyad(request.soyad())
-                .email(request.email().toLowerCase().trim())
+                .email(normalizeEmail)
                 .sifreHash(passwordEncoder.encode(request.sifre()))
                 .plan(PlanTuru.FREE)
                 .paraBirimi(ParaBirimi.TRY)
@@ -87,6 +94,10 @@ public class AuthServiceImpl implements AuthService {
     public ApiResponse<TokenResponse> tokenYenile(String refreshToken) {
         if (jwtService.isTokenExpired(refreshToken)) {
             throw new IllegalArgumentException("Refresh token süresi dolmuştur. Lütfen tekrar giriş yapınız.");
+        }
+
+        if (!jwtService.isRefreshToken(refreshToken)) {
+            throw new IllegalArgumentException("Geçersiz refresh token.");
         }
 
         Long kullaniciId = jwtService.getUserIdFromToken(refreshToken);

@@ -10,7 +10,7 @@ import {
   DestekKategorisi,
   DestekTalebiResponse,
   DestekTalebiOlusturRequest,
-} from '@/types/destek.types';
+} from '@giderlerim/shared/types/destek.types';
 
 const DURUM_ETIKET: Record<DestekDurumu, { ad: string; renk: string }> = {
   ACIK: { ad: 'Açık', renk: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
