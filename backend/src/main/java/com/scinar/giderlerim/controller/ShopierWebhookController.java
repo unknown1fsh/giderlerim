@@ -1,8 +1,10 @@
 package com.scinar.giderlerim.controller;
 
 import com.scinar.giderlerim.util.ShopierImzaDogrulayici;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,11 +13,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  * Shopier uygulama webhook / URL doğrulama uçları.
  * İmza: {@code Shopier-Signature} başlığı, HMAC-SHA256 (webhook token + ham gövde).
+ * Fail-closed: {@code SHOPIER_WEBHOOK_TOKEN} tanımlı değilse hiçbir bildirim kabul edilmez.
+ * Ham gövde ve gizli değerler loglanmaz; yalnızca boyut ve gövde parmak izi yazılır.
  */
 @Slf4j
 @RestController
@@ -24,6 +26,13 @@ public class ShopierWebhookController {
 
     @Value("${shopier.webhook.token:}")
     private String webhookToken;
+
+    @PostConstruct
+    void yapilandirmayiDenetle() {
+        if (!tokenTanimli()) {
+            log.warn("SHOPIER_WEBHOOK_TOKEN tanımlı değil; Shopier webhook bildirimleri reddedilecek.");
+        }
+    }
 
     @GetMapping("/webhook")
     public ResponseEntity<String> webhookGet() {
@@ -35,15 +44,23 @@ public class ShopierWebhookController {
             @RequestHeader(value = "Shopier-Signature", required = false) String shopierSignature,
             @RequestBody(required = false) byte[] hamGovde
     ) {
+        int boyut = hamGovde != null ? hamGovde.length : 0;
+        String parmakIzi = ShopierImzaDogrulayici.govdeParmakIzi(hamGovde);
+
+        if (!tokenTanimli()) {
+            log.warn("Shopier webhook reddedildi: token yapılandırılmamış (boyut={}, iz={})", boyut, parmakIzi);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
         if (!ShopierImzaDogrulayici.webhookImzasiGecerli(hamGovde, shopierSignature, webhookToken)) {
-            log.warn("Shopier webhook reddedildi: imza geçersiz veya Shopier-Signature eksik (token tanımlı)");
-            return ResponseEntity.status(401).build();
+            log.warn("Shopier webhook reddedildi: imza geçersiz veya eksik (boyut={}, iz={})", boyut, parmakIzi);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String metin = hamGovde != null && hamGovde.length > 0
-                ? new String(hamGovde, StandardCharsets.UTF_8)
-                : "";
-        log.info("Shopier webhook kabul edildi: {}", metin);
+        log.info("Shopier webhook kabul edildi (boyut={}, iz={})", boyut, parmakIzi);
         return ResponseEntity.ok().build();
+    }
+
+    private boolean tokenTanimli() {
+        return webhookToken != null && !webhookToken.isBlank();
     }
 }

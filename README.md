@@ -102,6 +102,28 @@ npm run verify:backend
 
 Şema `backend/src/main/resources/db/migration/` altındaki elle yazılmış Flyway migration dosyalarıyla yönetilir. Hibernate yalnızca şema doğrulaması yapar; otomatik şema üretimi kullanılmaz.
 
+### Migration doğrulaması
+
+`FlywayMigrasyonDogrulamaTest`, tüm migration'ları boş bir PostgreSQL şemasına uygular ve entity eşlemesini `ddl-auto=validate` ile doğrular. CI'da PostgreSQL servisiyle her zaman çalışır. Yerelde çalıştırmak için:
+
+```bash
+docker run -d --rm --name giderlerim-migtest -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=giderlerim_test -p 55432:5432 postgres:16-alpine
+MIGRASYON_TEST_DB_URL='jdbc:postgresql://localhost:55432/giderlerim_test?stringtype=unspecified' mvn -f backend/pom.xml test -Dtest=FlywayMigrasyonDogrulamaTest
+```
+
+## Dağıtım
+
+`master` dalına yapılan push, önce `PR Validation` iş akışını (backend testleri + migration doğrulaması, frontend lint + build) çalıştırır; yalnızca doğrulama başarılıysa Railway deploy'u başlar. Deploy'lar sırayla çalışır.
+
+### Migration geri alma
+
+Flyway Community sürümü otomatik geri alma (undo) desteklemez; bu nedenle ileriye dönük düzeltme (forward-fix) uygulanır:
+
+1. Uygulanmış bir migration dosyası **asla değiştirilmez veya silinmez** (checksum hatası uygulamayı açılmaz hale getirir).
+2. Hatalı bir değişiklik, onu tersine çeviren yeni bir `V{n+1}__...sql` migration'ı ile düzeltilir ve normal deploy akışıyla yayınlanır.
+3. Veri kaybettiren (DROP, kolon silme, tip daraltma) migration'lardan önce Railway PostgreSQL yedeği alınır; geri dönüş gerekiyorsa yedekten geri yükleme yapılır ve uygulama önceki imaja döndürülür (Railway → Deployments → Redeploy).
+4. Şema değişiklikleri mümkün olduğunca geriye uyumlu yapılır (önce kolon ekle, kodu geçir, sonra eskisini kaldır).
+
 ## Ortam değişkenleri
 
 Gerekli değişkenlerin açıklamaları [.env.example](.env.example) içinde bulunur. Gerçek anahtarlar ve parolalar repoya eklenmemelidir.
