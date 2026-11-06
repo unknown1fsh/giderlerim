@@ -5,8 +5,8 @@ import { format, subMonths } from 'date-fns';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useGiderler } from '@/hooks/useGiderler';
 import { useAuthStore } from '@/stores/authStore';
-import type { KategoriHarcamaResponse } from '@/types/dashboard.types';
-import type { GiderResponse } from '@/types/gider.types';
+import type { KategoriHarcamaResponse } from '@giderlerim/shared/types/dashboard.types';
+import type { GiderResponse } from '@giderlerim/shared/types/gider.types';
 
 type Periyt = 'bu-ay' | 'gecen-ay';
 

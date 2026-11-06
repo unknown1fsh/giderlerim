@@ -41,7 +41,7 @@ public class DestekTalebiServiceImpl implements DestekTalebiService {
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı. ID: " + kullaniciId));
 
         DestekOnceligi oncelik = request.oncelik() != null ? request.oncelik() : DestekOnceligi.NORMAL;
-        if (kullanici.getPlan() == PlanTuru.PREMIUM || kullanici.getPlan() == PlanTuru.ULTRA) {
+        if (kullanici.getPlan().enAz(PlanTuru.PREMIUM)) {
             oncelik = enAzOncelik(oncelik, DestekOnceligi.YUKSEK);
         }
 

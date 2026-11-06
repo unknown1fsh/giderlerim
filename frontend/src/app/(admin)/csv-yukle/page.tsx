@@ -27,12 +27,12 @@ export default function CsvYuklePage() {
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, []);
 
-  const gecmisYukle = async () => {
+  async function gecmisYukle() {
     try {
       const r = await csvService.gecmis();
       setGecmis(r.data);
     } catch { /* sessizce */ }
-  };
+  }
 
   const pollingBaslat = (id: number) => {
     if (pollingRef.current) clearInterval(pollingRef.current);

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '@/services/adminService';
-import { SistemParametresiDto, SistemParametresiOlusturRequest } from '@/types/admin.types';
+import type { SistemParametresiDto, SistemParametresiOlusturRequest } from '@giderlerim/shared/types/admin.types';
 
 const KATEGORI_ETIKETLER: Record<string, string> = {
   GENEL: 'Genel',
@@ -26,6 +26,29 @@ const KATEGORI_RENK: Record<string, string> = {
   SISTEM: 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300',
   PLAN: 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300',
 };
+
+const CANLI_PARAMETRELER = new Set([
+  'jwt.expiration.access',
+  'jwt.expiration.refresh',
+  'allowed.origin',
+  'openai.model',
+  'openai.max-tokens',
+  'ai.analiz.gecerlilik.saat',
+  'max.dosya.boyutu.mb',
+  'yeni.kayit.aktif',
+  'ucretsiz.plan.aylik.gider.limiti',
+  'premium.csv.yukleme.limiti',
+]);
+
+const CEKIRDEK_PARAMETRELER = new Set([
+  ...CANLI_PARAMETRELER,
+  'bakim.modu',
+  'uygulama.versiyonu',
+  'premium.fiyat.try',
+  'ultra.fiyat.try',
+  'hosgeldiniz.mesaji',
+  'destek.email',
+]);
 
 export default function SistemParametreleriPage() {
   const queryClient = useQueryClient();
@@ -74,6 +97,7 @@ export default function SistemParametreleriPage() {
       queryClient.invalidateQueries({ queryKey: ['admin', 'sistem-parametreleri'] });
       setSilOnay(null);
     },
+    onError: () => setHata('Parametre silinemedi.'),
   });
 
   const duzenleAc = (p: SistemParametresiDto) => {
@@ -110,6 +134,11 @@ export default function SistemParametreleriPage() {
         >
           + Yeni Parametre
         </button>
+      </div>
+
+      <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
+        <span className="font-semibold">Canlı</span> etiketli ayarlar kaydedildikten sonraki işlemde uygulanır.
+        Bilgi etiketli değerler ise mevcut ürün yapılandırmasını gösterir. Çekirdek parametreler güvenlik amacıyla silinemez.
       </div>
 
       {/* Kategori filtresi */}
@@ -176,6 +205,13 @@ export default function SistemParametreleriPage() {
                           {p.aciklama && (
                             <p className="mt-0.5 text-xs text-gray-400">{p.aciklama}</p>
                           )}
+                          <span className={`mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                            CANLI_PARAMETRELER.has(p.anahtar)
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                          }`}>
+                            {CANLI_PARAMETRELER.has(p.anahtar) ? 'Canlı' : 'Bilgi'}
+                          </span>
                         </td>
                         <td className="px-4 py-3">
                           <span className="font-mono text-xs text-gray-800 dark:text-white">{p.deger}</span>
@@ -207,12 +243,14 @@ export default function SistemParametreleriPage() {
                                 Sıfırla
                               </button>
                             )}
-                            <button
-                              onClick={() => setSilOnay(p)}
-                              className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
-                            >
-                              Sil
-                            </button>
+                            {!CEKIRDEK_PARAMETRELER.has(p.anahtar) && (
+                              <button
+                                onClick={() => { setHata(''); setSilOnay(p); }}
+                                className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                              >
+                                Sil
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -253,6 +291,7 @@ export default function SistemParametreleriPage() {
               ) : (
                 <input
                   type={duzenleModal.tip === 'NUMBER' ? 'number' : 'text'}
+                  min={duzenleModal.tip === 'NUMBER' ? (duzenleModal.anahtar === 'premium.csv.yukleme.limiti' ? -1 : 1) : undefined}
                   value={degerInput}
                   onChange={e => setDegerInput(e.target.value)}
                   className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-sm text-gray-700 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
@@ -269,8 +308,14 @@ export default function SistemParametreleriPage() {
                 İptal
               </button>
               <button
-                onClick={() => guncelle.mutate({ id: duzenleModal.id, deger: degerInput })}
-                disabled={guncelle.isPending}
+                onClick={() => {
+                  if (!degerInput.trim()) {
+                    setHata('Değer boş olamaz.');
+                    return;
+                  }
+                  guncelle.mutate({ id: duzenleModal.id, deger: degerInput.trim() });
+                }}
+                disabled={guncelle.isPending || !degerInput.trim()}
                 className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60 transition-colors"
               >
                 {guncelle.isPending ? 'Kaydediliyor...' : 'Kaydet'}

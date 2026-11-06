@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '@/services/adminService';
-import { AdminKullaniciDto, AdminKullaniciGuncelleRequest } from '@/types/admin.types';
-import { PlanTuru } from '@/types/kullanici.types';
+import type { AdminKullaniciDto, AdminKullaniciGuncelleRequest } from '@giderlerim/shared/types/admin.types';
+import type { AdminKullaniciSayfaResponse } from '@giderlerim/shared/types/admin.types';
+import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
+import { useAuthStore } from '@/stores/authStore';
 
 const PLAN_ETIKETLER: Record<string, { label: string; cls: string }> = {
   FREE: { label: 'Ücretsiz', cls: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' },
@@ -27,6 +29,7 @@ export default function KullanicilarPage() {
   const [silOnay, setSilOnay] = useState<AdminKullaniciDto | null>(null);
   const [form, setForm] = useState<AdminKullaniciGuncelleRequest>({});
   const [hata, setHata] = useState('');
+  const [basari, setBasari] = useState('');
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin', 'kullanicilar', { arama, planFiltre, aktifFiltre, sayfa }],
@@ -43,9 +46,26 @@ export default function KullanicilarPage() {
   const guncelle = useMutation({
     mutationFn: ({ id, req }: { id: number; req: AdminKullaniciGuncelleRequest }) =>
       adminService.kullaniciGuncelle(id, req),
-    onSuccess: () => {
+    onSuccess: (guncellenen) => {
+      queryClient.setQueriesData<AdminKullaniciSayfaResponse>(
+        { queryKey: ['admin', 'kullanicilar'] },
+        eski => eski
+          ? { ...eski, content: eski.content.map(k => k.id === guncellenen.id ? guncellenen : k) }
+          : eski,
+      );
       queryClient.invalidateQueries({ queryKey: ['admin', 'kullanicilar'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'istatistikler'] });
+
+      const oturumKullanicisi = useAuthStore.getState().kullanici;
+      if (oturumKullanicisi?.id === guncellenen.id) {
+        useAuthStore.getState().kullaniciGuncelle({
+          ...oturumKullanicisi,
+          plan: guncellenen.plan,
+          adminMi: guncellenen.adminMi,
+        });
+      }
+
+      setBasari(`${guncellenen.ad} ${guncellenen.soyad} için üyelik ve hesap durumu güncellendi.`);
       setModal(null);
     },
     onError: () => setHata('Güncelleme başarısız.'),
@@ -63,6 +83,7 @@ export default function KullanicilarPage() {
   const modalAc = (k: AdminKullaniciDto) => {
     setForm({ plan: k.plan, adminMi: k.adminMi, aktif: k.aktif });
     setHata('');
+    setBasari('');
     setModal(k);
   };
 
@@ -80,6 +101,12 @@ export default function KullanicilarPage() {
           </p>
         </div>
       </div>
+
+      {basari && (
+        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">
+          {basari} Kullanıcının açık oturumu en geç 30 saniye içinde otomatik yenilenir.
+        </div>
+      )}
 
       {/* Filtreler */}
       <div className="flex flex-wrap gap-3">
@@ -281,8 +308,19 @@ export default function KullanicilarPage() {
                 İptal
               </button>
               <button
-                onClick={() => guncelle.mutate({ id: modal.id, req: form })}
-                disabled={guncelle.isPending}
+                onClick={() => guncelle.mutate({
+                  id: modal.id,
+                  req: {
+                    plan: form.plan ?? modal.plan,
+                    adminMi: form.adminMi ?? modal.adminMi,
+                    aktif: form.aktif ?? modal.aktif,
+                  },
+                })}
+                disabled={guncelle.isPending || (
+                  (form.plan ?? modal.plan) === modal.plan
+                  && (form.adminMi ?? modal.adminMi) === modal.adminMi
+                  && (form.aktif ?? modal.aktif) === modal.aktif
+                )}
                 className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60 transition-colors"
               >
                 {guncelle.isPending ? 'Kaydediliyor...' : 'Kaydet'}

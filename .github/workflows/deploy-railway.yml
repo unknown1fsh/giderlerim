@@ -5,9 +5,19 @@ on:
     branches:
       - master
 
+# Aynı anda tek deploy; yeni push gelirse sıradaki bekler, çalışan deploy iptal edilmez.
+concurrency:
+  group: railway-production
+  cancel-in-progress: false
+
 jobs:
+  dogrulama:
+    name: Doğrulama (build, test, migration)
+    uses: ./.github/workflows/pr-validation.yml
+
   deploy:
     name: Railway Deploy
+    needs: dogrulama
     runs-on: ubuntu-latest
 
     steps:

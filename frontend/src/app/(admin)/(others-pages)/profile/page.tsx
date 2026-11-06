@@ -6,9 +6,8 @@ import { useRouter } from 'next/navigation';
 import { shopierProfilYukseltUrl } from '@/config/shopier';
 import apiClient from '@/services/apiClient';
 import { useAuthStore } from '@/stores/authStore';
-import { PlanTuru, ParaBirimi, ProfilGuncelleRequest } from '@/types/kullanici.types';
-import { ApiResponse } from '@/types/api.types';
-import { KullaniciResponse } from '@/types/kullanici.types';
+import type { PlanTuru, ParaBirimi, ProfilGuncelleRequest, KullaniciResponse } from '@giderlerim/shared/types/kullanici.types';
+import type { ApiResponse } from '@giderlerim/shared/types/api.types';
 
 const PLAN_RENK: Record<PlanTuru, string> = {
   FREE: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',

@@ -3,13 +3,13 @@
   "version": "2.2.3",
   "private": true,
   "scripts": {
-    "dev": "node ./scripts/strip-shared-react-duplicates.mjs && next dev --webpack",
-    "build": "node ./scripts/strip-shared-react-duplicates.mjs && next build --webpack",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint .",
-    "postinstall": "npm install --no-workspaces --prefix ../packages/shared && node ./scripts/strip-shared-react-duplicates.mjs"
+    "lint": "eslint ."
   },
   "dependencies": {
+    "@giderlerim/shared": "*",
     "@fullcalendar/core": "^6.1.19",
     "@fullcalendar/daygrid": "^6.1.19",
     "@fullcalendar/interaction": "^6.1.19",

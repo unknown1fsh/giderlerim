@@ -1,9 +1,11 @@
 package com.scinar.giderlerim.security;
 
 import com.scinar.giderlerim.entity.Kullanici;
+import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +22,12 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    private final SistemParametresiDegerService parametreler;
+
+    public JwtService(SistemParametresiDegerService parametreler) {
+        this.parametreler = parametreler;
+    }
+
     @Value("${jwt.secret}")
     private String gizliAnahtar;
 
@@ -28,6 +36,17 @@ public class JwtService {
 
     @Value("${jwt.expiration.refresh}")
     private long refreshTokenGecerlilik;
+
+    /** HS256 en az 256 bit anahtar ister; eksik/kısa anahtarla açılmak her girişte 500 üretir. */
+    static final int MIN_ANAHTAR_BAYT = 32;
+
+    @PostConstruct
+    void anahtariDogrula() {
+        if (gizliAnahtar == null || gizliAnahtar.getBytes(StandardCharsets.UTF_8).length < MIN_ANAHTAR_BAYT) {
+            throw new IllegalStateException(
+                    "JWT_SECRET tanımlı değil veya " + MIN_ANAHTAR_BAYT + " bayttan kısa. Ortam değişkenini ayarlayın.");
+        }
+    }
 
     private SecretKey getSigningKey() {
         byte[] anahtarBayt = gizliAnahtar.getBytes(StandardCharsets.UTF_8);
@@ -40,14 +59,16 @@ public class JwtService {
         claims.put("email", kullanici.getEmail());
         claims.put("plan", kullanici.getPlan().name());
         claims.put("adminMi", kullanici.getAdminMi());
-        return buildToken(claims, kullanici.getEmail(), accessTokenGecerlilik);
+        long gecerlilik = parametreler.pozitifLong("jwt.expiration.access", accessTokenGecerlilik);
+        return buildToken(claims, kullanici.getEmail(), gecerlilik);
     }
 
     public String generateRefreshToken(Long kullaniciId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", kullaniciId);
         claims.put("tip", "refresh");
-        return buildToken(claims, kullaniciId.toString(), refreshTokenGecerlilik);
+        long gecerlilik = parametreler.pozitifLong("jwt.expiration.refresh", refreshTokenGecerlilik);
+        return buildToken(claims, kullaniciId.toString(), gecerlilik);
     }
 
     private String buildToken(Map<String, Object> extraClaims, String subject, long expiration) {
@@ -78,7 +99,11 @@ public class JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             final String email = getEmailFromToken(token);
-            return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+            return email.equals(userDetails.getUsername())
+                    && userDetails.isEnabled()
+                    && userDetails.isAccountNonLocked()
+                    && userDetails.isAccountNonExpired()
+                    && !isTokenExpired(token);
         } catch (Exception e) {
             log.debug("Token doğrulama başarısız");
             return false;
@@ -90,6 +115,14 @@ public class JwtService {
             return getExpirationDateFromToken(token).before(new Date());
         } catch (Exception e) {
             return true;
+        }
+    }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            return "refresh".equals(getAllClaimsFromToken(token).get("tip", String.class));
+        } catch (Exception e) {
+            return false;
         }
     }
 

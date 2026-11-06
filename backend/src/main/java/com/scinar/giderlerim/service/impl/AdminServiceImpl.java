@@ -21,11 +21,20 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
+
+    private static final Set<String> CEKIRDEK_PARAMETRELER = Set.of(
+            "jwt.expiration.access", "jwt.expiration.refresh", "allowed.origin",
+            "openai.model", "openai.max-tokens", "ai.analiz.gecerlilik.saat",
+            "max.dosya.boyutu.mb", "bakim.modu", "yeni.kayit.aktif", "uygulama.versiyonu",
+            "ucretsiz.plan.aylik.gider.limiti", "premium.fiyat.try", "ultra.fiyat.try",
+            "premium.csv.yukleme.limiti", "hosgeldiniz.mesaji", "destek.email"
+    );
 
     private final KullaniciRepository kullaniciRepository;
     private final GiderRepository giderRepository;
@@ -125,6 +134,10 @@ public class AdminServiceImpl implements AdminService {
         Kullanici kullanici = kullaniciRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
 
+        if (request.plan() == null && request.adminMi() == null && request.aktif() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Güncellenecek en az bir alan gönderilmelidir");
+        }
+
         if (request.plan() != null) {
             kullanici.setPlan(request.plan());
         }
@@ -135,7 +148,9 @@ public class AdminServiceImpl implements AdminService {
             kullanici.setAktif(request.aktif());
         }
 
-        Kullanici kaydedildi = kullaniciRepository.save(kullanici);
+        Kullanici kaydedildi = kullaniciRepository.saveAndFlush(kullanici);
+        log.info("Kullanıcı üyeliği güncellendi. ID: {}, plan: {}, admin: {}, aktif: {}",
+                kaydedildi.getId(), kaydedildi.getPlan(), kaydedildi.getAdminMi(), kaydedildi.getAktif());
         return ApiResponse.basarili("Kullanıcı güncellendi", kullanicidanDto(kaydedildi));
     }
 
@@ -175,6 +190,7 @@ public class AdminServiceImpl implements AdminService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bu parametre düzenlenemez");
         }
 
+        parametreDegeriniDogrula(parametre.getAnahtar(), parametre.getTip(), request.deger());
         parametre.setDeger(request.deger());
         SistemParametresi kaydedildi = sistemParametresiRepository.save(parametre);
         return ApiResponse.basarili("Parametre güncellendi", parametredanDto(kaydedildi));
@@ -187,12 +203,16 @@ public class AdminServiceImpl implements AdminService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Bu anahtar zaten mevcut: " + request.anahtar());
         }
 
+        String tip = request.tip() != null ? request.tip() : "STRING";
+        parametreDegeriniDogrula(request.anahtar(), tip, request.deger());
+        parametreDegeriniDogrula(request.anahtar(), tip, request.varsayilanDeger());
+
         SistemParametresi yeni = SistemParametresi.builder()
                 .anahtar(request.anahtar())
                 .deger(request.deger())
                 .varsayilanDeger(request.varsayilanDeger())
                 .aciklama(request.aciklama())
-                .tip(request.tip() != null ? request.tip() : "STRING")
+                .tip(tip)
                 .kategori(request.kategori() != null ? request.kategori() : "GENEL")
                 .duzenlenebilir(true)
                 .build();
@@ -206,6 +226,10 @@ public class AdminServiceImpl implements AdminService {
     public ApiResponse<Void> parametreSil(Long id) {
         SistemParametresi parametre = sistemParametresiRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parametre bulunamadı"));
+
+        if (CEKIRDEK_PARAMETRELER.contains(parametre.getAnahtar())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Çekirdek sistem parametreleri silinemez");
+        }
 
         sistemParametresiRepository.delete(parametre);
         return ApiResponse.basarili("Parametre silindi", null);
@@ -255,5 +279,27 @@ public class AdminServiceImpl implements AdminService {
                 p.getDuzenlenebilir(),
                 p.getUpdatedAt()
         );
+    }
+
+    private void parametreDegeriniDogrula(String anahtar, String tip, String deger) {
+        if (deger == null || deger.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parametre değeri boş olamaz");
+        }
+
+        try {
+            if ("NUMBER".equals(tip)) {
+                BigDecimal sayi = new BigDecimal(deger);
+                boolean eksiBirOlabilir = "premium.csv.yukleme.limiti".equals(anahtar);
+                if ((!eksiBirOlabilir && sayi.signum() <= 0) || (eksiBirOlabilir && sayi.compareTo(BigDecimal.valueOf(-1)) < 0)) {
+                    throw new NumberFormatException();
+                }
+            } else if ("BOOLEAN".equals(tip)
+                    && !"true".equalsIgnoreCase(deger)
+                    && !"false".equalsIgnoreCase(deger)) {
+                throw new IllegalArgumentException();
+            }
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parametre değeri " + tip + " tipine uygun değil");
+        }
     }
 }

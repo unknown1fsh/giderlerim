@@ -24,6 +24,7 @@ import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KategoriRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.BelgeYuklemeService;
+import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
@@ -52,7 +53,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
 
-    private static final long MAX_DOSYA_BOYUTU = 15L * 1024 * 1024; // 15MB
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
     private static final List<DateTimeFormatter> TARIH_FORMATLARI = List.of(
@@ -69,6 +69,7 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
     private final KategoriRepository kategoriRepository;
     private final OpenAiConfig openAiConfig;
     private final RestTemplate restTemplate;
+    private final SistemParametresiDegerService parametreler;
 
     @Override
     @Transactional
@@ -90,14 +91,15 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
             );
         }
 
-        if (dosya.getSize() > MAX_DOSYA_BOYUTU) {
-            throw new GecersizDosyaException("Dosya boyutu 15MB'ı aşamaz.");
+        int maxDosyaBoyutuMb = parametreler.pozitifTamSayi("max.dosya.boyutu.mb", 15);
+        if (dosya.getSize() > maxDosyaBoyutuMb * 1024L * 1024L) {
+            throw new GecersizDosyaException("Dosya boyutu " + maxDosyaBoyutuMb + "MB'ı aşamaz.");
         }
 
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı."));
 
-        if (kullanici.getPlan() == PlanTuru.FREE) {
+        if (!kullanici.getPlan().enAz(PlanTuru.PREMIUM)) {
             throw new PlanLimitiAsimException("Belge yükleme özelliği Premium veya Ultra plana dahildir.");
         }
 
@@ -351,7 +353,7 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
 
         Map<String, Object> istek = new HashMap<>();
         istek.put("model", openAiConfig.getModel());
-        istek.put("max_tokens", 4096);
+        istek.put("max_tokens", openAiConfig.getMaxTokens());
         istek.put("messages", mesajlar);
 
         try {

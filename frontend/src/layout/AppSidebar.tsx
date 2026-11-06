@@ -4,9 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuthStore } from "../stores/authStore";
+import { adminMenuGoster } from "./adminMenu";
 import {
   BoxCubeIcon,
-  CalenderIcon,
   ChevronDownIcon,
   DollarLineIcon,
   GridIcon,
@@ -98,6 +99,7 @@ const othersItems: NavItem[] = [
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { kullanici } = useAuthStore();
   const pathname = usePathname();
 
   const renderMenuItems = (
@@ -239,29 +241,20 @@ const AppSidebar: React.FC = () => {
    const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   useEffect(() => {
-    // Check if the current path matches any submenu item
-    let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType as "main" | "others",
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
+    const timer = window.setTimeout(() => {
+      let submenuMatched = false;
+      ["main", "others"].forEach((menuType) => {
+        const items = menuType === "main" ? navItems : othersItems;
+        items.forEach((nav, index) => {
+          if (nav.subItems?.some((subItem) => isActive(subItem.path))) {
+            setOpenSubmenu({ type: menuType as "main" | "others", index });
+            submenuMatched = true;
+          }
+        });
       });
-    });
-
-    // If no submenu item matches, close the open submenu
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
-    }
+      if (!submenuMatched) setOpenSubmenu(null);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [pathname,isActive]);
 
   useEffect(() => {
@@ -358,22 +351,24 @@ const AppSidebar: React.FC = () => {
               {renderMenuItems(navItems, "main")}
             </div>
 
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Diğer"
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div>
+            {adminMenuGoster(Boolean(kullanici?.adminMi)) && (
+              <div>
+                <h2
+                  className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                    !isExpanded && !isHovered
+                      ? "lg:justify-center"
+                      : "justify-start"
+                  }`}
+                >
+                  {isExpanded || isHovered || isMobileOpen ? (
+                    "Diğer"
+                  ) : (
+                    <HorizontaLDots />
+                  )}
+                </h2>
+                {renderMenuItems(othersItems, "others")}
+              </div>
+            )}
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}

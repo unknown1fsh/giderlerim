@@ -13,7 +13,7 @@ import {
   ultraYillikTasarrufTl,
 } from '@/lib/planFiyatlari';
 import { useAuthStore } from '@/stores/authStore';
-import type { PlanTuru } from '@/types/kullanici.types';
+import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
 import type { ShopierPlanKey } from '@/config/shopier';
 
 const PLAN_AD: Record<PlanTuru, string> = { FREE: 'Ücretsiz', PREMIUM: 'Pro', ULTRA: 'Ultra' };

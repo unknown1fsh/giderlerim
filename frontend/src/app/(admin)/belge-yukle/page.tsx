@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { belgeService, BelgeYuklemeResponse } from '@/services/belgeService';
 import PlanKapisi from '@/components/shared/PlanKapisi';
@@ -30,12 +31,12 @@ function BelgeYukleIcerigi() {
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, []);
 
-  const gecmisYukle = async () => {
+  async function gecmisYukle() {
     try {
       const r = await belgeService.gecmis();
       setGecmis(r.data);
     } catch { /* sessizce */ }
-  };
+  }
 
   const pollingBaslat = (id: number) => {
     if (pollingRef.current) clearInterval(pollingRef.current);
@@ -131,7 +132,14 @@ function BelgeYukleIcerigi() {
         />
         {onizleme ? (
           <div className="text-center">
-            <img src={onizleme} alt="Önizleme" className="mb-3 max-h-40 rounded-xl object-contain" />
+            <Image
+              src={onizleme}
+              alt="Önizleme"
+              width={320}
+              height={160}
+              unoptimized
+              className="mb-3 max-h-40 rounded-xl object-contain"
+            />
             <p className="font-semibold text-brand-600 dark:text-brand-400">{secilenDosya?.name}</p>
           </div>
         ) : secilenDosya ? (

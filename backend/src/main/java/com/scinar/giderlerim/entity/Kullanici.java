@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,11 +42,13 @@ public class Kullanici implements UserDetails {
     private String sifreHash;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(columnDefinition = "plan_turu", nullable = false)
     @Builder.Default
     private PlanTuru plan = PlanTuru.FREE;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "para_birimi", columnDefinition = "para_birimi", nullable = false)
     @Builder.Default
     private ParaBirimi paraBirimi = ParaBirimi.TRY;

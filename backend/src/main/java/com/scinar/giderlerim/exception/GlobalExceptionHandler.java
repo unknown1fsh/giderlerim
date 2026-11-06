@@ -5,10 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,12 +80,47 @@ public class GlobalExceptionHandler {
                 .body(HataResponse.of("ERISIM_ENGELLENDI", "Bu işlem için yetkiniz bulunmamaktadır."));
     }
 
+    @ExceptionHandler({
+            MissingServletRequestParameterException.class,
+            MethodArgumentTypeMismatchException.class,
+            HttpMessageNotReadableException.class
+    })
+    public ResponseEntity<HataResponse> hataliIstek(Exception ex) {
+        log.debug("Hatalı istek: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(HataResponse.of("GECERSIZ_ISTEK", "İstek parametreleri eksik veya hatalı."));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<HataResponse> kaynakBulunamadi(NoResourceFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(HataResponse.of("KAYNAK_BULUNAMADI", "İstenen adres bulunamadı."));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<HataResponse> kimlikDogrulamaHatasi(BadCredentialsException ex) {
+        log.debug("Kimlik doğrulama başarısız");
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(HataResponse.of("KIMLIK_DOGRULAMA_HATASI", ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<HataResponse> gecersizArguman(IllegalArgumentException ex) {
         log.debug("Geçersiz argüman: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(HataResponse.of("GECERSIZ_ISTEK", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ServisKullanilamiyorException.class)
+    public ResponseEntity<HataResponse> servisKullanilamiyor(ServisKullanilamiyorException ex) {
+        log.warn("Servis kullanılamıyor: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(HataResponse.of("SERVIS_KULLANILAMIYOR", ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

@@ -21,6 +21,7 @@ import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KategoriRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.CsvYuklemeService;
+import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CsvYuklemeServiceImpl implements CsvYuklemeService {
 
-    private static final long MAX_DOSYA_BOYUTU = 5 * 1024 * 1024; // 5MB
     private static final List<DateTimeFormatter> TARIH_FORMATLARI = List.of(
             DateTimeFormatter.ofPattern("dd/MM/yyyy"),
             DateTimeFormatter.ofPattern("dd.MM.yyyy"),
@@ -56,6 +56,7 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
     private final GiderRepository giderRepository;
     private final KullaniciRepository kullaniciRepository;
     private final KategoriRepository kategoriRepository;
+    private final SistemParametresiDegerService parametreler;
 
     @Override
     @Transactional
@@ -70,8 +71,9 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
             throw new GecersizDosyaException("Yalnızca CSV dosyaları desteklenmektedir.");
         }
 
-        if (dosya.getSize() > MAX_DOSYA_BOYUTU) {
-            throw new GecersizDosyaException("Dosya boyutu 5MB'ı aşamaz.");
+        int maxDosyaBoyutuMb = parametreler.pozitifTamSayi("max.dosya.boyutu.mb", 15);
+        if (dosya.getSize() > maxDosyaBoyutuMb * 1024L * 1024L) {
+            throw new GecersizDosyaException("Dosya boyutu " + maxDosyaBoyutuMb + "MB'ı aşamaz.");
         }
 
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
@@ -87,6 +89,18 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
                         "Ücretsiz planda aylık 1 CSV yükleme hakkınız bulunmaktadır. " +
                         "PREMIUM'a geçerek sınırsız yükleme yapabilirsiniz."
                 );
+            }
+        } else if (kullanici.getPlan() == PlanTuru.PREMIUM) {
+            int aylikLimit = parametreler.tamSayi("premium.csv.yukleme.limiti", -1);
+            if (aylikLimit >= 0) {
+                int ay = LocalDate.now().getMonthValue();
+                int yil = LocalDate.now().getYear();
+                long aylikYukleme = csvYuklemeRepository.countByKullaniciIdAndAyAndYil(kullaniciId, ay, yil);
+                if (aylikYukleme >= aylikLimit) {
+                    throw new PlanLimitiAsimException(
+                            "Pro planda aylık " + aylikLimit + " CSV yükleme hakkınız bulunmaktadır."
+                    );
+                }
             }
         }
 

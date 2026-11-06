@@ -7,6 +7,7 @@ import com.scinar.giderlerim.dto.response.ApiResponse;
 import com.scinar.giderlerim.dto.response.TokenResponse;
 import com.scinar.giderlerim.security.JwtAuthFilter;
 import com.scinar.giderlerim.service.AuthService;
+import com.scinar.giderlerim.service.HesapGuvenligiService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,6 +34,9 @@ class AuthControllerTest {
 
     @MockBean
     AuthService authService;
+
+    @MockBean
+    HesapGuvenligiService hesapGuvenligiService;
 
     /** SecurityConfig bağımlılığı — slice testinde gerçek filtreyi kurmuyoruz */
     @MockBean

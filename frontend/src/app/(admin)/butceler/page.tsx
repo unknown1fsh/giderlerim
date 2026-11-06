@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useButceOzetler, useButceEkle, useButceSil, useButceGuncelle } from '@/hooks/useButceler';
 import { useKategoriler } from '@/hooks/useKategoriler';
-import { ButceOzetResponse, ButceOlusturRequest } from '@/types/butce.types';
-import type { KategoriResponse } from '@/types/kategori.types';
+import type { ButceOzetResponse, ButceOlusturRequest } from '@giderlerim/shared/types/butce.types';
+import type { KategoriResponse } from '@giderlerim/shared/types/kategori.types';
 import { useAuthStore } from '@/stores/authStore';
 
 const AY_ADLARI = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',

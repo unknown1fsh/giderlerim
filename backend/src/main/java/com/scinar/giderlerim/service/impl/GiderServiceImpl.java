@@ -19,6 +19,7 @@ import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KategoriRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.GiderService;
+import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import com.scinar.giderlerim.service.UyariService;
 import com.scinar.giderlerim.util.TarihYardimcisi;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,7 @@ public class GiderServiceImpl implements GiderService {
     private final KategoriRepository kategoriRepository;
     private final KullaniciRepository kullaniciRepository;
     private final UyariService uyariService;
+    private final SistemParametresiDegerService parametreler;
 
     @Override
     @Transactional(readOnly = true)
@@ -91,14 +93,15 @@ public class GiderServiceImpl implements GiderService {
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı."));
 
-        // FREE plan: aylık 50 gider limiti
+        // FREE plan aylık gider limiti sistem parametrelerinden yönetilir.
         if (kullanici.getPlan() == PlanTuru.FREE) {
+            int aylikLimit = parametreler.pozitifTamSayi("ucretsiz.plan.aylik.gider.limiti", 50);
             int ay = request.tarih().getMonthValue();
             int yil = request.tarih().getYear();
             long aylikGiderSayisi = giderRepository.countByKullaniciIdAndAyAndYil(kullaniciId, ay, yil);
-            if (aylikGiderSayisi >= 50) {
+            if (aylikGiderSayisi >= aylikLimit) {
                 throw new PlanLimitiAsimException(
-                        "Ücretsiz planda aylık 50 gider girişi hakkınız bulunmaktadır. " +
+                        "Ücretsiz planda aylık " + aylikLimit + " gider girişi hakkınız bulunmaktadır. " +
                         "PREMIUM'a geçerek sınırsız gider ekleyebilirsiniz."
                 );
             }

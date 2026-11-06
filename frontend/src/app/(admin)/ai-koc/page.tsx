@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import { aiSohbetService } from '@/services/aiService';
-import { SohbetOturumResponse, SohbetMesajiResponse } from '@/types/ai.types';
+import type { SohbetOturumResponse, SohbetMesajiResponse } from '@giderlerim/shared/types/ai.types';
 import PlanKapisi from '@/components/shared/PlanKapisi';
 
 function ChatIcerigi() {
@@ -17,22 +17,23 @@ function ChatIcerigi() {
   const [hata, setHata] = useState('');
   const mesajSonuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    oturumlariYukle();
-  }, []);
-
-  useEffect(() => {
-    mesajSonuRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [mesajlar]);
-
-  const oturumlariYukle = async () => {
+  async function oturumlariYukle() {
     try {
       const r = await aiSohbetService.getOturumlar();
       setOturumlar(r.data);
     } catch {
       setHata('Oturumlar yüklenemedi.');
     }
-  };
+  }
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void oturumlariYukle(), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    mesajSonuRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [mesajlar]);
 
   const oturumSec = async (id: number) => {
     setAktifOturumId(id);

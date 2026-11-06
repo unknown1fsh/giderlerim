@@ -5,6 +5,7 @@ import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import { useAuthStore } from "@/stores/authStore";
+import { authService } from "@/services/authService";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
@@ -14,14 +15,46 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-  const { accessToken } = useAuthStore();
+  const { accessToken, kullaniciGuncelle } = useAuthStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   useEffect(() => {
     if (mounted && !accessToken) router.push("/signin");
   }, [mounted, accessToken, router]);
+
+  useEffect(() => {
+    if (!mounted || !accessToken) return;
+
+    let aktif = true;
+    const profiliEsitle = async () => {
+      try {
+        const yanit = await authService.beniBul();
+        if (aktif && yanit.data) kullaniciGuncelle(yanit.data);
+      } catch {
+        // Geçici ağ hatalarında mevcut oturumu koru; 401 yönlendirmesini API istemcisi yönetir.
+      }
+    };
+    const gorunurlukteEsitle = () => {
+      if (document.visibilityState === "visible") void profiliEsitle();
+    };
+
+    void profiliEsitle();
+    const aralik = window.setInterval(() => void profiliEsitle(), 30_000);
+    window.addEventListener("focus", profiliEsitle);
+    document.addEventListener("visibilitychange", gorunurlukteEsitle);
+
+    return () => {
+      aktif = false;
+      window.clearInterval(aralik);
+      window.removeEventListener("focus", profiliEsitle);
+      document.removeEventListener("visibilitychange", gorunurlukteEsitle);
+    };
+  }, [mounted, accessToken, kullaniciGuncelle]);
 
   if (!mounted || !accessToken) {
     return (

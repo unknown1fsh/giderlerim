@@ -54,7 +54,7 @@ Webhook ucu: [`ShopierWebhookController.java`](../backend/src/main/java/com/scin
 
 **Railway (backend runtime) gizli değişkenler** — değerleri repoya koymayın:
 
-- `SHOPIER_WEBHOOK_TOKEN` — uygulama webhook token’ı  
+- `SHOPIER_WEBHOOK_TOKEN` — uygulama webhook token’ı. **Zorunlu (fail-closed):** tanımlı değilse tüm webhook bildirimleri `503` ile, imzası eksik/hatalı bildirimler `401` ile reddedilir. İmza hex veya base64 (isteğe bağlı `sha256=` önekiyle) kabul edilir. Ham gövde loglanmaz; loglarda yalnızca boyut ve gövde parmak izi (SHA-256 ilk 12 karakter) yer alır.  
 - `SHOPIER_OAUTH_CLIENT_ID` — client id (OAuth token alışverişi için; ileride)  
 - `SHOPIER_OAUTH_CLIENT_SECRET` — client secret  
 

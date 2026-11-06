@@ -4,9 +4,9 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import { shopierOdemeUrl } from '@/config/shopier';
 import { aiAnalizService } from '@/services/aiService';
-import { AiAnalizResponse } from '@/types/ai.types';
+import type { AiAnalizResponse } from '@giderlerim/shared/types/ai.types';
 import { useAuthStore } from '@/stores/authStore';
-import { PlanTuru } from '@/types/kullanici.types';
+import type { PlanTuru } from '@giderlerim/shared/types/kullanici.types';
 
 const AY_ADLARI = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];

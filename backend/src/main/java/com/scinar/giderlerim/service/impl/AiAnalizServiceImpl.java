@@ -17,6 +17,7 @@ import com.scinar.giderlerim.repository.AiAnalizSonucuRepository;
 import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.AiAnalizService;
+import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import com.scinar.giderlerim.util.TarihYardimcisi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +37,6 @@ import java.util.stream.Collectors;
 public class AiAnalizServiceImpl implements AiAnalizService {
 
     private static final String OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
-    private static final int ONBELLEK_SAAT = 6;
 
     private final OpenAiConfig openAiConfig;
     private final RestTemplate restTemplate;
@@ -44,6 +44,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     private final GiderRepository giderRepository;
     private final AiAnalizSonucuRepository analizSonucuRepository;
     private final ObjectMapper objectMapper;
+    private final SistemParametresiDegerService parametreler;
 
     @Override
     @Transactional
@@ -423,7 +424,8 @@ public class AiAnalizServiceImpl implements AiAnalizService {
                     .ay(ay)
                     .yil(yil)
                     .icerikJson(json)
-                    .gecerlilikSuresi(LocalDateTime.now().plusHours(ONBELLEK_SAAT))
+                    .gecerlilikSuresi(LocalDateTime.now().plusHours(
+                            parametreler.pozitifTamSayi("ai.analiz.gecerlilik.saat", 24)))
                     .build();
 
             analizSonucuRepository.save(sonuc);
@@ -458,16 +460,9 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     }
 
     private void planKontrolEt(Kullanici kullanici, PlanTuru gerekliFPlan, String ozellik) {
-        if (gerekliFPlan == PlanTuru.ULTRA && kullanici.getPlan() != PlanTuru.ULTRA) {
+        if (!kullanici.getPlan().enAz(gerekliFPlan)) {
             throw new PlanLimitiAsimException(
-                    ozellik + " özelliği yalnızca ULTRA plan kullanıcılarına sunulmaktadır. " +
-                    "Planınızı yükselterek bu özelliğe erişebilirsiniz."
-            );
-        }
-        if (gerekliFPlan == PlanTuru.PREMIUM &&
-                kullanici.getPlan() == PlanTuru.FREE) {
-            throw new PlanLimitiAsimException(
-                    ozellik + " özelliği yalnızca PREMIUM ve ULTRA plan kullanıcılarına sunulmaktadır. " +
+                    ozellik + " özelliği için en az " + gerekliFPlan + " planı gereklidir. " +
                     "Planınızı yükselterek bu özelliğe erişebilirsiniz."
             );
         }

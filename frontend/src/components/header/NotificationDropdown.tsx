@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { uyariService } from "@/services/uyariService";
-import { useUyariStore } from "@/stores/uyariStore";
-import { UyariResponse, UyariTuru } from "@/types/uyari.types";
+import { useUyariStore } from "@giderlerim/shared/stores/uyariStore";
+import type { UyariResponse, UyariTuru } from "@giderlerim/shared/types/uyari.types";
 
 const uyariIkonu = (tur: UyariTuru) => {
   const renkler: Record<UyariTuru, string> = {
@@ -66,7 +66,8 @@ export default function NotificationDropdown() {
   }, [setSayisi]);
 
   useEffect(() => {
-    uyarilariYukle();
+    const timer = window.setTimeout(() => void uyarilariYukle(), 0);
+    return () => window.clearTimeout(timer);
   }, [uyarilariYukle]);
 
   const handleAc = () => {
