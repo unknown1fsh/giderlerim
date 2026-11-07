@@ -1,7 +1,5 @@
 package com.scinar.giderlerim.service.impl;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 import com.scinar.giderlerim.dto.response.ApiResponse;
 import com.scinar.giderlerim.dto.response.CsvYuklemeResponse;
 import com.scinar.giderlerim.entity.CsvYukleme;
@@ -9,7 +7,6 @@ import com.scinar.giderlerim.entity.Gider;
 import com.scinar.giderlerim.entity.Kategori;
 import com.scinar.giderlerim.entity.Kullanici;
 import com.scinar.giderlerim.entity.enums.GirisTuru;
-import com.scinar.giderlerim.entity.enums.OdemeYontemi;
 import com.scinar.giderlerim.entity.enums.ParaBirimi;
 import com.scinar.giderlerim.entity.enums.YuklemeDurumu;
 import com.scinar.giderlerim.entity.enums.PlanTuru;
@@ -22,6 +19,8 @@ import com.scinar.giderlerim.repository.KategoriRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.CsvYuklemeService;
 import com.scinar.giderlerim.util.EmailDogrulamaKapisi;
+import com.scinar.giderlerim.util.IceAktarmaAyristirici;
+import com.scinar.giderlerim.util.IceAktarmaOzeti;
 import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,13 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,14 +37,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CsvYuklemeServiceImpl implements CsvYuklemeService {
-
-    private static final List<DateTimeFormatter> TARIH_FORMATLARI = List.of(
-            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
-            DateTimeFormatter.ofPattern("dd.MM.yyyy"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd"),
-            DateTimeFormatter.ofPattern("d/M/yyyy"),
-            DateTimeFormatter.ofPattern("d.M.yyyy")
-    );
 
     private final CsvYuklemeRepository csvYuklemeRepository;
     private final GiderRepository giderRepository;
@@ -150,10 +135,7 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
 
     // ========== Yardımcı Metodlar ==========
 
-    private void csvIsle(CsvYukleme yukleme, MultipartFile dosya, Kullanici kullanici)
-            throws IOException, CsvException {
-
-        // Varsayılan kategori: Diğer
+    private void csvIsle(CsvYukleme yukleme, MultipartFile dosya, Kullanici kullanici) throws IOException {
         Kategori varsayilanKategori = kategoriRepository.findAllByKullaniciId(kullanici.getId())
                 .stream()
                 .filter(k -> Boolean.TRUE.equals(k.getSistemMi()) && k.getAd().contains("Diğer"))
@@ -164,163 +146,33 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
                         .findFirst()
                         .orElseThrow(() -> new KayitBulunamadiException("Sistem kategorisi bulunamadı.")));
 
-        try (CSVReader csvReader = new CSVReader(
-                new InputStreamReader(dosya.getInputStream(), StandardCharsets.UTF_8))) {
+        IceAktarmaAyristirici.Sonuc sonuc = IceAktarmaAyristirici.ayristir(IceAktarmaAyristirici.csvOku(dosya.getBytes()));
+        yukleme.setToplamSatir(sonuc.toplamSatir());
 
-            List<String[]> satirlar = csvReader.readAll();
-
-            if (satirlar.isEmpty()) {
-                throw new GecersizDosyaException("CSV dosyası boş.");
-            }
-
-            // Başlık satırını atla
-            String[] baslik = satirlar.get(0);
-            int toplamSatir = satirlar.size() - 1;
-
-            yukleme.setToplamSatir(toplamSatir);
-            csvYuklemeRepository.save(yukleme);
-
-            // Sütun indekslerini belirle
-            int tarihIndex = -1, aciklamaIndex = -1, tutarIndex = -1, odemeYontemiIndex = -1;
-
-            for (int i = 0; i < baslik.length; i++) {
-                String sutun = baslik[i].trim().toLowerCase()
-                        .replace("ı", "i").replace("ğ", "g").replace("ş", "s")
-                        .replace("ç", "c").replace("ö", "o").replace("ü", "u");
-                switch (sutun) {
-                    case "tarih", "date" -> tarihIndex = i;
-                    case "aciklama", "açıklama", "description", "islem", "işlem" -> aciklamaIndex = i;
-                    case "tutar", "miktar", "amount" -> tutarIndex = i;
-                    case "odeme_yontemi", "ödeme_yöntemi", "payment_method", "odeme" -> odemeYontemiIndex = i;
-                }
-            }
-
-            if (tarihIndex == -1 || tutarIndex == -1) {
-                throw new GecersizDosyaException(
-                        "CSV dosyası gerekli sütunları içermiyor. Gerekli: tarih, tutar. " +
-                        "Opsiyonel: aciklama, odeme_yontemi"
-                );
-            }
-
-            List<Gider> islenecekGiderler = new ArrayList<>();
-            int islenenSatir = 0;
-            List<String> hatalar = new ArrayList<>();
-
-            for (int i = 1; i < satirlar.size(); i++) {
-                String[] satir = satirlar.get(i);
-                try {
-                    if (satir.length <= Math.max(tarihIndex, tutarIndex)) {
-                        hatalar.add("Satır " + i + ": Eksik sütun");
-                        continue;
-                    }
-
-                    // Tarih parse
-                    LocalDate tarih = tarihParse(satir[tarihIndex].trim());
-
-                    // Tutar parse
-                    String tutarStr = satir[tutarIndex].trim()
-                            .replace(",", ".")
-                            .replaceAll("[^0-9.]", "");
-                    BigDecimal tutar = new BigDecimal(tutarStr);
-
-                    if (tutar.compareTo(BigDecimal.ZERO) <= 0) {
-                        hatalar.add("Satır " + i + ": Geçersiz tutar");
-                        continue;
-                    }
-
-                    // Açıklama
-                    String aciklama = null;
-                    if (aciklamaIndex >= 0 && aciklamaIndex < satir.length) {
-                        aciklama = satir[aciklamaIndex].trim();
-                        if (aciklama.isEmpty()) aciklama = null;
-                    }
-
-                    // Ödeme yöntemi
-                    OdemeYontemi odemeYontemi = OdemeYontemi.NAKIT;
-                    if (odemeYontemiIndex >= 0 && odemeYontemiIndex < satir.length) {
-                        odemeYontemi = odemeYontemiParse(satir[odemeYontemiIndex].trim());
-                    }
-
-                    Gider gider = Gider.builder()
-                            .kullanici(kullanici)
-                            .kategori(varsayilanKategori)
-                            .tutar(tutar)
-                            .paraBirimi(ParaBirimi.TRY)
-                            .aciklama(aciklama)
-                            .tarih(tarih)
-                            .odemeYontemi(odemeYontemi)
-                            .girisTuru(GirisTuru.CSV)
-                            .csvYukleme(yukleme)
-                            .aiKategorilendi(false)
-                            .anormalMi(false)
-                            .build();
-
-                    islenecekGiderler.add(gider);
-                    islenenSatir++;
-
-                } catch (Exception e) {
-                    hatalar.add("Satır " + i + ": " + e.getMessage());
-                    log.debug("CSV satır işleme hatası, satır {}: {}", i, e.getMessage());
-                }
-            }
-
-            // Toplu kaydet
-            if (!islenecekGiderler.isEmpty()) {
-                giderRepository.saveAll(islenecekGiderler);
-            }
-
-            yukleme.setIslenenSatir(islenenSatir);
-
-            if (!hatalar.isEmpty() && islenenSatir == 0) {
-                yukleme.setDurum(YuklemeDurumu.HATA);
-                yukleme.setHataMesaji("Tüm satırlarda hata oluştu: " + String.join("; ", hatalar.subList(0, Math.min(5, hatalar.size()))));
-            } else if (!hatalar.isEmpty()) {
-                yukleme.setDurum(YuklemeDurumu.TAMAMLANDI);
-                yukleme.setHataMesaji(hatalar.size() + " satır işlenemedi.");
-            } else {
-                yukleme.setDurum(YuklemeDurumu.TAMAMLANDI);
-            }
-
-            csvYuklemeRepository.save(yukleme);
-            log.info("CSV işlendi. Kullanıcı: {}, Toplam: {}, Başarılı: {}, Hatalı: {}",
-                    kullanici.getId(), toplamSatir, islenenSatir, hatalar.size());
+        List<Gider> giderler = sonuc.giderler().stream()
+                .map(satir -> Gider.builder()
+                        .kullanici(kullanici)
+                        .kategori(varsayilanKategori)
+                        .tutar(satir.tutar())
+                        .paraBirimi(ParaBirimi.TRY)
+                        .aciklama(satir.aciklama())
+                        .tarih(satir.tarih())
+                        .odemeYontemi(satir.odemeYontemi())
+                        .girisTuru(GirisTuru.CSV)
+                        .csvYukleme(yukleme)
+                        .aiKategorilendi(false)
+                        .anormalMi(false)
+                        .build())
+                .toList();
+        if (!giderler.isEmpty()) {
+            giderRepository.saveAll(giderler);
         }
-    }
-
-    private LocalDate tarihParse(String tarihStr) {
-        for (DateTimeFormatter format : TARIH_FORMATLARI) {
-            try {
-                return LocalDate.parse(tarihStr, format);
-            } catch (DateTimeParseException e) {
-                // Sonraki formatı dene
-            }
-        }
-        throw new IllegalArgumentException("Tarih formatı tanınamadı: " + tarihStr);
-    }
-
-    private OdemeYontemi odemeYontemiParse(String deger) {
-        if (deger == null || deger.isEmpty()) return OdemeYontemi.NAKIT;
-
-        String normallestirilmis = deger.toLowerCase()
-                .replace("ı", "i").replace("ğ", "g")
-                .replace("ş", "s").replace("ç", "c")
-                .replace("ö", "o").replace("ü", "u");
-
-        if (normallestirilmis.contains("kredi") || normallestirilmis.contains("credit")) {
-            return OdemeYontemi.KREDI_KARTI;
-        }
-        if (normallestirilmis.contains("banka") || normallestirilmis.contains("debit")) {
-            return OdemeYontemi.BANKA_KARTI;
-        }
-        if (normallestirilmis.contains("havale") || normallestirilmis.contains("eft") || normallestirilmis.contains("transfer")) {
-            return OdemeYontemi.HAVALE;
-        }
-
-        try {
-            return OdemeYontemi.valueOf(deger.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return OdemeYontemi.NAKIT;
-        }
+        yukleme.setIslenenSatir(giderler.size());
+        yukleme.setDurum(giderler.isEmpty() && !sonuc.hatalar().isEmpty() ? YuklemeDurumu.HATA : YuklemeDurumu.TAMAMLANDI);
+        yukleme.setHataMesaji(IceAktarmaOzeti.mesaj(sonuc));
+        csvYuklemeRepository.save(yukleme);
+        log.info("CSV işlendi. Kullanıcı: {}, Toplam: {}, Eklenen: {}, Atlanan: {}, Hatalı: {}",
+                kullanici.getId(), sonuc.toplamSatir(), giderler.size(), sonuc.atlananSayisi(), sonuc.hatalar().size());
     }
 
     private CsvYuklemeResponse entitydenResponse(CsvYukleme yukleme) {
