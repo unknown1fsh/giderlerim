@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import { aiSohbetService } from '@/services/aiService';
 import type { SohbetOturumResponse, SohbetMesajiResponse } from '@giderlerim/shared/types/ai.types';
 import PlanKapisi from '@/components/shared/PlanKapisi';
+import AiIzinKapisi from '@/components/shared/AiIzinKapisi';
 
 function ChatIcerigi() {
   const [oturumlar, setOturumlar] = useState<SohbetOturumResponse[]>([]);
@@ -256,7 +257,9 @@ export default function AiKocPage() {
         </p>
       </div>
       <PlanKapisi gerekliPlan="PREMIUM">
-        <ChatIcerigi />
+        <AiIzinKapisi>
+          <ChatIcerigi />
+        </AiIzinKapisi>
       </PlanKapisi>
     </div>
   );

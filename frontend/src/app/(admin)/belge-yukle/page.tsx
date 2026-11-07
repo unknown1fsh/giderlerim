@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { format } from 'date-fns';
 import { belgeService, BelgeYuklemeResponse } from '@/services/belgeService';
 import PlanKapisi from '@/components/shared/PlanKapisi';
+import AiIzinKapisi from '@/components/shared/AiIzinKapisi';
 
 const KABUL_FORMATLARI = ['.csv', '.xlsx', '.pdf', '.jpg', '.jpeg', '.png', '.bmp'];
 const ACCEPT_MIME = '.csv,.xlsx,.pdf,.jpg,.jpeg,.png,.bmp,image/*';
@@ -253,7 +254,9 @@ export default function BelgeYuklePage() {
         </p>
       </div>
       <PlanKapisi gerekliPlan="PREMIUM">
-        <BelgeYukleIcerigi />
+        <AiIzinKapisi>
+          <BelgeYukleIcerigi />
+        </AiIzinKapisi>
       </PlanKapisi>
     </div>
   );

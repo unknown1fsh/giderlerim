@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { shopierOdemeUrl } from '@/config/shopier';
+import AiIzinKapisi from '@/components/shared/AiIzinKapisi';
 import { aiAnalizService } from '@/services/aiService';
 import type { AiAnalizResponse } from '@giderlerim/shared/types/ai.types';
 import { useAuthStore } from '@/stores/authStore';
@@ -182,6 +183,7 @@ export default function AnalizlerPage() {
         </div>
       )}
 
+      <AiIzinKapisi gerekli={plan !== 'FREE'}>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <AnalizKarti
           baslik="Harcama Analizi"
@@ -239,6 +241,7 @@ export default function AnalizlerPage() {
           }}
         />
       </div>
+      </AiIzinKapisi>
     </div>
   );
 }

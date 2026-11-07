@@ -46,6 +46,13 @@ public class GlobalExceptionHandler {
                 .body(HataResponse.of("PLAN_LIMITI_ASIM", ex.getMessage()));
     }
 
+    @ExceptionHandler(AiIzniGerekliException.class)
+    public ResponseEntity<HataResponse> aiIzniGerekli(AiIzniGerekliException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(HataResponse.of("AI_IZNI_GEREKLI", ex.getMessage()));
+    }
+
     @ExceptionHandler(GecersizDosyaException.class)
     public ResponseEntity<HataResponse> gecersizDosya(GecersizDosyaException ex) {
         log.debug("Geçersiz dosya: {}", ex.getMessage());

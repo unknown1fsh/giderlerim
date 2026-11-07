@@ -71,6 +71,17 @@ public class Kullanici implements UserDetails {
     @Builder.Default
     private Boolean adminMi = false;
 
+    /** Yapay zeka sağlayıcısına veri aktarımı için açık rıza (KVKK). */
+    @Column(name = "ai_izni", nullable = false)
+    @Builder.Default
+    private Boolean aiIzni = false;
+
+    @Column(name = "ai_izni_tarihi")
+    private LocalDateTime aiIzniTarihi;
+
+    @Column(name = "ai_izni_metin_surumu", length = 20)
+    private String aiIzniMetinSurumu;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 

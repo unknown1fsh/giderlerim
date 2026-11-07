@@ -1,5 +1,7 @@
 package com.scinar.giderlerim.service.impl;
 
+import com.scinar.giderlerim.util.AiIzinKapisi;
+import com.scinar.giderlerim.util.PiiMaskeleyici;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +53,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     public ApiResponse<AiAnalizResponse> harcamaAnaliziYap(Long kullaniciId, int ay, int yil) {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici, PlanTuru.PREMIUM, "Harcama analizi");
+        AiIzinKapisi.dogrula(kullanici);
 
         Optional<AiAnalizSonucu> onbellekSonucu = analizSonucuRepository.findGecerliAnaliz(
                 kullaniciId, AnalizTuru.HARCAMA_ANALIZI, ay, yil, LocalDateTime.now()
@@ -77,7 +80,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
             return ApiResponse.basarili(bos);
         }
 
-        String harcamaOzeti = harcamaVerisiniHazirla(giderler, ay, yil);
+        String harcamaOzeti = harcamaVerisiniHazirla(kullanici, giderler, ay, yil);
 
         String sistemPrompt = """
                 Sen giderlerim.net uygulamasının yapay zeka destekli kişisel finans analistisisin.
@@ -115,6 +118,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     public ApiResponse<AiAnalizResponse> butceOnerisiAl(Long kullaniciId) {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici, PlanTuru.PREMIUM, "Bütçe önerisi");
+        AiIzinKapisi.dogrula(kullanici);
 
         Optional<AiAnalizSonucu> onbellekSonucu = analizSonucuRepository.findGecerliAnalizAysiz(
                 kullaniciId, AnalizTuru.BUTCE_ONERISI, LocalDateTime.now()
@@ -140,7 +144,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
             return ApiResponse.basarili(bos);
         }
 
-        String harcamaOzeti = harcamaVerisiniHazirla(giderler,
+        String harcamaOzeti = harcamaVerisiniHazirla(kullanici, giderler,
                 LocalDate.now().getMonthValue(), LocalDate.now().getYear());
 
         String sistemPrompt = """
@@ -179,6 +183,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     public ApiResponse<AiAnalizResponse> anomaliTespitEt(Long kullaniciId) {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici, PlanTuru.ULTRA, "Anomali tespiti");
+        AiIzinKapisi.dogrula(kullanici);
 
         Optional<AiAnalizSonucu> onbellekSonucu = analizSonucuRepository.findGecerliAnalizAysiz(
                 kullaniciId, AnalizTuru.ANOMALI_TESPITI, LocalDateTime.now()
@@ -204,7 +209,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
             return ApiResponse.basarili(bos);
         }
 
-        String harcamaOzeti = harcamaVerisiniHazirla(giderler,
+        String harcamaOzeti = harcamaVerisiniHazirla(kullanici, giderler,
                 LocalDate.now().getMonthValue(), LocalDate.now().getYear());
 
         String sistemPrompt = """
@@ -243,6 +248,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
     public ApiResponse<AiAnalizResponse> tasarrufFirsatlariniGoster(Long kullaniciId) {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici, PlanTuru.ULTRA, "Tasarruf fırsatları analizi");
+        AiIzinKapisi.dogrula(kullanici);
 
         Optional<AiAnalizSonucu> onbellekSonucu = analizSonucuRepository.findGecerliAnalizAysiz(
                 kullaniciId, AnalizTuru.TASARRUF_FIRSATI, LocalDateTime.now()
@@ -268,7 +274,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
             return ApiResponse.basarili(bos);
         }
 
-        String harcamaOzeti = harcamaVerisiniHazirla(giderler,
+        String harcamaOzeti = harcamaVerisiniHazirla(kullanici, giderler,
                 LocalDate.now().getMonthValue(), LocalDate.now().getYear());
 
         String sistemPrompt = """
@@ -380,7 +386,7 @@ public class AiAnalizServiceImpl implements AiAnalizService {
         }
     }
 
-    private String harcamaVerisiniHazirla(List<Gider> giderler, int ay, int yil) {
+    private String harcamaVerisiniHazirla(Kullanici kullanici, List<Gider> giderler, int ay, int yil) {
         Map<String, List<Gider>> kategoriGrubu = giderler.stream()
                 .collect(Collectors.groupingBy(g -> g.getKategori().getAd()));
 
@@ -402,7 +408,9 @@ public class AiAnalizServiceImpl implements AiAnalizService {
                 sb.append(String.format("- %s | %s | %.2f TL | %s\n",
                         g.getTarih(), g.getKategori().getAd(),
                         g.getTutar().doubleValue(),
-                        g.getAciklama() != null ? g.getAciklama() : ""))
+                        g.getAciklama() != null
+                                ? PiiMaskeleyici.maskeleVeKisalt(g.getAciklama(), 60, kullanici.getAd(), kullanici.getSoyad())
+                                : ""))
         );
 
         return sb.toString();

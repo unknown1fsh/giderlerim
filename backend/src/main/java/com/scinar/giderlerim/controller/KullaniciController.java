@@ -1,5 +1,6 @@
 package com.scinar.giderlerim.controller;
 
+import com.scinar.giderlerim.dto.request.AiIzniRequest;
 import com.scinar.giderlerim.dto.request.ProfilGuncelleRequest;
 import com.scinar.giderlerim.dto.response.ApiResponse;
 import com.scinar.giderlerim.dto.response.KullaniciResponse;
@@ -34,5 +35,12 @@ public class KullaniciController {
     public ResponseEntity<ApiResponse<Void>> hesabiSil() {
         Long kullaniciId = SecurityYardimcisi.mevcutKullaniciId();
         return ResponseEntity.ok(kullaniciService.hesabiSil(kullaniciId));
+    }
+
+    /** Yapay zeka sağlayıcısına veri aktarımı için açık rıza verir veya geri alır. */
+    @PutMapping("/ai-izni")
+    public ResponseEntity<ApiResponse<KullaniciResponse>> aiIzniGuncelle(@Valid @RequestBody AiIzniRequest request) {
+        Long kullaniciId = SecurityYardimcisi.mevcutKullaniciId();
+        return ResponseEntity.ok(kullaniciService.aiIzniGuncelle(kullaniciId, request));
     }
 }
