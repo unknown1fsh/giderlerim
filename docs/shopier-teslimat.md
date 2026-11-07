@@ -1,6 +1,6 @@
 # Shopier ödeme sonrası plan teslimatı
 
-Backend’de Shopier webhook’u tanımlı değilse plan güncellemesi **otomatik olmaz**. Aşağıdaki operasyonel akışı kullanın.
+Ödenen siparişler Shopier webhook'u (`order.created`) ile **otomatik** olarak plana dönüştürülür; elle müdahale yalnızca otomatik eşleşmeyen siparişler için gerekir.
 
 ## Ürün → plan eşlemesi (canlı linkler)
 
@@ -13,20 +13,34 @@ Backend’de Shopier webhook’u tanımlı değilse plan güncellemesi **otomati
 
 Kodda ortam değişkenleri: `NEXT_PUBLIC_SHOPIER_PRO_AYLIK`, `PRO_YILLIK`, `ULTRA_AYLIK`, `ULTRA_YILLIK` (Next.js); mobilde `EXPO_PUBLIC_SHOPIER_PRO_AYLIK`, `EXPO_PUBLIC_SHOPIER_ULTRA_AYLIK`. Ayrıntı: kök `.env.example`.
 
-## 1. Sipariş geldiğinde
+## 1. Otomatik akış
 
-1. Shopier bildirim e-postası veya panelde siparişi açın.
-2. Ödeme yapan **e-posta** ile Giderlerim’de kayıtlı kullanıcıyı eşleştirin (müşteri notunda “uygulama e-postam” istemeniz önerilir).
-3. Admin panelden ilgili kullanıcının planını güncelleyin: **PREMIUM** (Pro) veya **ULTRA** (Ultra), satın alınan ürün adına göre.
+1. Shopier, ödenen siparişi `order.created` bildirimiyle gönderir; imza `SHOPIER_WEBHOOK_TOKEN` ile doğrulanır.
+2. Aynı bildirim (`Shopier-Webhook-Id`) veya aynı sipariş ikinci kez işlenmez.
+3. Sipariş satırındaki ürün kimliği `shopier.urunler.*` ayarıyla plana ve döneme eşlenir; toplam tutar ayardaki fiyattan düşükse veya para birimi TRY değilse plan atanmaz.
+4. Alıcının fatura e-postası (yoksa teslimat e-postası) ile kayıtlı kullanıcı bulunur ve abonelik başlatılır: aylık 1 ay, yıllık 1 yıl. Aynı plan aktifken alınan yeni dönem, mevcut bitişten devam eder.
+5. Kullanıcının planı, aktif aboneliklerinin en yükseğidir. Süresi dolan abonelikler saat başı kapatılır ve plan düşürülür.
+6. `refund.updated` ile tam iade gelirse bağlı abonelik iptal edilir; kısmi iade yalnızca işaretlenir.
+
+## 2. Elle müdahale gereken durumlar (Admin → Ödemeler)
+
+| Durum | Anlamı | Yapılacak |
+|-------|--------|-----------|
+| Kullanıcı bulunamadı | Alıcı Shopier'de farklı e-posta kullandı | Kullanıcıyı bulup **Kullanıcıya ata** |
+| Tutar uyuşmuyor | İndirimli/eksik ödeme veya farklı para birimi | Doğrulayıp **Kullanıcıya ata** veya iade |
+| Ürün tanımsız | Ürün kimliği `shopier.urunler` ayarında yok | Ayarı ekleyip kullanıcıya planı admin panelinden verin |
+| Kısmi iade | Kısmi iade yapıldı | Planı gerekirse admin panelinden düzenleyin |
+
+Admin panelinden elle verilen planlar süresizdir; FREE yapmak tüm aktif abonelikleri iptal eder.
 
 ## 2. Müşteri iletişimi
 
 - Başarılı ödeme sonrası tarayıcı: `/odeme/basarili` sayfası “kısa süre içinde plan” mesajı gösterir.
 - 24 saat içinde erişim yoksa **destek@giderlerim.com** (veya güncel destek adresiniz) üzerinden sipariş numarası ile dönüş isteyin.
 
-## 3. İleride otomasyon
+## 3. Ürün fiyatı veya yeni ürün
 
-- Shopier API / webhook ile sipariş doğrulandığında backend’de kullanıcı `plan` alanını güncelleyen bir endpoint ve imza doğrulama eklenebilir; ürün SKU veya tutar ile `PREMIUM` / `ULTRA` eşlemesi yapılır.
+Ürün → plan eşlemesi ve beklenen fiyat `backend/src/main/resources/application.properties` içindeki `shopier.urunler.<urunId>.plan|donem|fiyat` anahtarlarıdır. Shopier'de fiyat değişirse bu değerleri de güncelleyin.
 
 ---
 
@@ -60,4 +74,4 @@ Webhook ucu: [`ShopierWebhookController.java`](../backend/src/main/java/com/scin
 
 Client id/secret veya webhook token **herhangi bir yerde ifşa olduysa** Shopier geliştirici panelinden **yenileyin** ve eskisini kullanmayın.
 
-Plan alanını otomatik güncelleme (sipariş → PREMIUM/ULTRA) henüz bu webhook içinde yok; sıradaki geliştirme adımıdır.
+Webhook olay olarak en az `order.created`, iadeler için `refund.updated` seçilmelidir.

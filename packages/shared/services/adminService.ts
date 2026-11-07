@@ -7,6 +7,9 @@ import {
   SistemParametresiDto,
   SistemParametresiGuncelleRequest,
   SistemParametresiOlusturRequest,
+  ShopierSiparisDto,
+  ShopierSiparisSayfaResponse,
+  SiparisDurumu,
 } from '../types/admin.types';
 
 interface ApiResponse<T> {
@@ -81,6 +84,18 @@ export function createAdminService(client: AxiosInstance) {
 
     async parametreSil(id: number): Promise<void> {
       await client.delete(`/admin/sistem-parametreleri/${id}`);
+    },
+
+    async odemeleriGetir(params: { durum?: SiparisDurumu; sayfa?: number; boyut?: number }): Promise<ShopierSiparisSayfaResponse> {
+      const res = await client.get<ApiResponse<ShopierSiparisSayfaResponse>>('/admin/odemeler', {
+        params: { durum: params.durum || undefined, sayfa: params.sayfa ?? 0, boyut: params.boyut ?? 20 },
+      });
+      return res.data.data;
+    },
+
+    async odemeyiKullaniciyaAta(siparisId: number, kullaniciId: number): Promise<ShopierSiparisDto> {
+      const res = await client.put<ApiResponse<ShopierSiparisDto>>(`/admin/odemeler/${siparisId}/kullanici/${kullaniciId}`, {});
+      return res.data.data;
     },
   };
 }

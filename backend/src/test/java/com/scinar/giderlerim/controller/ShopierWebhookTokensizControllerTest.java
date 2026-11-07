@@ -1,6 +1,7 @@
 package com.scinar.giderlerim.controller;
 
 import com.scinar.giderlerim.security.JwtAuthFilter;
+import com.scinar.giderlerim.service.ShopierOdemeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,6 +25,9 @@ class ShopierWebhookTokensizControllerTest {
 
     @MockBean
     JwtAuthFilter jwtAuthFilter;
+
+    @MockBean
+    ShopierOdemeService odemeService;
 
     @Test
     void tokenYoksaBildirimReddedilir() throws Exception {
