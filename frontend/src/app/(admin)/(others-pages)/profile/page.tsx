@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { shopierProfilYukseltUrl } from '@/config/shopier';
 import apiClient from '@/services/apiClient';
 import { useAuthStore } from '@/stores/authStore';
+import { AiIzinMetni } from '@/components/shared/AiIzinKapisi';
 import type { PlanTuru, ParaBirimi, ProfilGuncelleRequest, KullaniciResponse } from '@giderlerim/shared/types/kullanici.types';
 import type { ApiResponse } from '@giderlerim/shared/types/api.types';
 
@@ -29,6 +30,23 @@ export default function ProfilPage() {
   const [hataMesaji, setHataMesaji] = useState('');
   const [silOnay, setSilOnay] = useState(false);
   const [silIsleniyor, setSilIsleniyor] = useState(false);
+  const [aiIsleniyor, setAiIsleniyor] = useState(false);
+  const [aiMetinAcik, setAiMetinAcik] = useState(false);
+
+  const aiIzniDegistir = async (izin: boolean) => {
+    setAiIsleniyor(true);
+    setHataMesaji('');
+    setBasariMesaji('');
+    try {
+      const r = await apiClient.put<ApiResponse<KullaniciResponse>>('/kullanici/ai-izni', { izin });
+      kullaniciGuncelle(r.data.data);
+      setBasariMesaji(izin ? 'Yapay zeka özellikleri etkinleştirildi.' : 'Yapay zeka özellikleri kapatıldı.');
+    } catch {
+      setHataMesaji('Yapay zeka izni güncellenemedi.');
+    } finally {
+      setAiIsleniyor(false);
+    }
+  };
 
   const kaydet = async () => {
     if (!form.ad?.trim() || !form.soyad?.trim()) {
@@ -164,6 +182,41 @@ export default function ProfilPage() {
       </div>
 
       {/* Tehlikeli alan */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-gray-800 dark:text-white">Yapay zeka özellikleri</h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {kullanici?.aiIzni
+                ? 'Açık: AI koç, analizler ve belge okuma için verileriniz maskelenerek yapay zeka sağlayıcısına gönderiliyor.'
+                : 'Kapalı: hiçbir veriniz yapay zeka sağlayıcısına gönderilmiyor.'}
+            </p>
+            <button
+              type="button"
+              onClick={() => setAiMetinAcik((v) => !v)}
+              className="mt-2 text-sm text-brand-500 hover:underline"
+            >
+              {aiMetinAcik ? 'Bilgilendirmeyi gizle' : 'Hangi veriler gönderiliyor?'}
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => aiIzniDegistir(!kullanici?.aiIzni)}
+            disabled={aiIsleniyor}
+            className={kullanici?.aiIzni
+              ? 'rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700'
+              : 'rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-60'}
+          >
+            {aiIsleniyor ? 'Kaydediliyor…' : kullanici?.aiIzni ? 'İzni geri al' : 'İzin ver ve etkinleştir'}
+          </button>
+        </div>
+        {aiMetinAcik && (
+          <div className="mt-4">
+            <AiIzinMetni />
+          </div>
+        )}
+      </div>
+
       <div className="rounded-2xl border border-red-200 bg-white p-6 dark:border-red-800 dark:bg-gray-800">
         <h2 className="mb-2 text-base font-semibold text-red-600 dark:text-red-400">Tehlikeli Alan</h2>
         <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">

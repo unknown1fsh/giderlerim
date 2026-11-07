@@ -1,5 +1,7 @@
 package com.scinar.giderlerim.service.impl;
 
+import com.scinar.giderlerim.util.AiIzinKapisi;
+import com.scinar.giderlerim.util.PiiMaskeleyici;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
@@ -101,6 +103,10 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
 
         if (!kullanici.getPlan().enAz(PlanTuru.PREMIUM)) {
             throw new PlanLimitiAsimException("Belge yükleme özelliği Premium veya Ultra plana dahildir.");
+        }
+        if ("PDF".equals(dosyaTuru) || "GORUNTU".equals(dosyaTuru)) {
+            // PDF metni ve görseller yapay zeka sağlayıcısına gönderilir; açık rıza gerekir.
+            AiIzinKapisi.dogrula(kullanici);
         }
 
         BelgeYukleme yukleme = BelgeYukleme.builder()
@@ -296,7 +302,7 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
                 ---
                 %s
                 """.formatted(LocalDate.now(), kategoriListesi,
-                pdfMetni.length() > 8000 ? pdfMetni.substring(0, 8000) : pdfMetni);
+                PiiMaskeleyici.maskeleVeKisalt(pdfMetni, 8000, kullanici.getAd(), kullanici.getSoyad()));
 
         List<Map<String, Object>> mesajlar = List.of(
                 Map.of("role", "user", "content", prompt)
@@ -383,7 +389,7 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
             int baslangic = temizYanit.indexOf('[');
             int bitis = temizYanit.lastIndexOf(']');
             if (baslangic == -1 || bitis == -1) {
-                log.warn("AI yanıtında JSON dizisi bulunamadı: {}", temizYanit);
+                log.warn("AI yanıtında JSON dizisi bulunamadı (uzunluk={})", temizYanit.length());
                 return giderler;
             }
             temizYanit = temizYanit.substring(baslangic, bitis + 1);

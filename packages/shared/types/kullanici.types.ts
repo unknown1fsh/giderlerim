@@ -10,6 +10,8 @@ export interface KullaniciResponse {
   paraBirimi: ParaBirimi;
   avatarUrl: string | null;
   adminMi: boolean;
+  /** Yapay zeka sağlayıcısına veri aktarımı için açık rıza. */
+  aiIzni: boolean;
 }
 
 export interface ProfilGuncelleRequest {

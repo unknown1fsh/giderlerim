@@ -1,5 +1,7 @@
 package com.scinar.giderlerim.service.impl;
 
+import com.scinar.giderlerim.util.AiIzinKapisi;
+import com.scinar.giderlerim.util.PiiMaskeleyici;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.scinar.giderlerim.config.OpenAiConfig;
@@ -117,6 +119,7 @@ public class AiSohbetServiceImpl implements AiSohbetService {
                                                            SohbetMesajiRequest request) {
         Kullanici kullanici = kullaniciGetir(kullaniciId);
         planKontrolEt(kullanici);
+        AiIzinKapisi.dogrula(kullanici);
 
         AiSohbetOturumu oturum = oturumRepository.findByIdAndKullaniciIdAndDeletedAtIsNull(oturumId, kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Sohbet oturumu bulunamadı. ID: " + oturumId));
@@ -138,7 +141,7 @@ public class AiSohbetServiceImpl implements AiSohbetService {
 
         Collections.reverse(sonMesajlar);
 
-        String finansalBaglamMetni = finansalBaglamHazirla(kullaniciId);
+        String finansalBaglamMetni = finansalBaglamHazirla(kullanici);
         String dinamikSistemPrompt = SISTEM_PROMPT + "\n\n" +
                 "=== KULLANICI FİNANSAL DURUMU (GÜNCEL) ===\n" + finansalBaglamMetni;
 
@@ -153,11 +156,12 @@ public class AiSohbetServiceImpl implements AiSohbetService {
             }
             Map<String, String> mesajMap = new HashMap<>();
             mesajMap.put("role", mesaj.getRol() == MesajRolu.KULLANICI ? "user" : "assistant");
-            mesajMap.put("content", mesaj.getIcerik());
+            mesajMap.put("content", PiiMaskeleyici.maskele(mesaj.getIcerik(), kullanici.getAd(), kullanici.getSoyad()));
             mesajListesi.add(mesajMap);
         }
 
-        mesajListesi.add(Map.of("role", "user", "content", request.icerik()));
+        mesajListesi.add(Map.of("role", "user", "content",
+                PiiMaskeleyici.maskele(request.icerik(), kullanici.getAd(), kullanici.getSoyad())));
 
         String asistanYaniti = openAiApiCagir(mesajListesi);
 
@@ -228,7 +232,8 @@ public class AiSohbetServiceImpl implements AiSohbetService {
         }
     }
 
-    private String finansalBaglamHazirla(Long kullaniciId) {
+    private String finansalBaglamHazirla(Kullanici kullanici) {
+        Long kullaniciId = kullanici.getId();
         int mevcutAy = TarihYardimcisi.mevcutAy();
         int mevcutYil = TarihYardimcisi.mevcutYil();
 
@@ -275,7 +280,8 @@ public class AiSohbetServiceImpl implements AiSohbetService {
             sb.append("\n--- SON 10 İŞLEM ---\n");
             sonIslemler.stream().limit(10).forEach(g -> {
                 String aciklama = g.getAciklama() != null && !g.getAciklama().isBlank()
-                        ? g.getAciklama() : "-";
+                        ? PiiMaskeleyici.maskeleVeKisalt(g.getAciklama(), 60, kullanici.getAd(), kullanici.getSoyad())
+                        : "-";
                 sb.append(String.format("  - %s | %s | %s | %.2f TL\n",
                         g.getTarih(), g.getKategori().getAd(), aciklama, g.getTutar().doubleValue()));
             });

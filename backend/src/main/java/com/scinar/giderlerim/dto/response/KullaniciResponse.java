@@ -11,5 +11,6 @@ public record KullaniciResponse(
         PlanTuru plan,
         ParaBirimi paraBirimi,
         String avatarUrl,
-        Boolean adminMi
+        Boolean adminMi,
+        Boolean aiIzni
 ) {}
