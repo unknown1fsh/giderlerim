@@ -18,6 +18,7 @@ import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KategoriRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.CsvYuklemeService;
+import com.scinar.giderlerim.service.PlanKotaService;
 import com.scinar.giderlerim.util.EmailDogrulamaKapisi;
 import com.scinar.giderlerim.util.IceAktarmaAyristirici;
 import com.scinar.giderlerim.util.IceAktarmaOzeti;
@@ -43,6 +44,7 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
     private final KullaniciRepository kullaniciRepository;
     private final KategoriRepository kategoriRepository;
     private final SistemParametresiDegerService parametreler;
+    private final PlanKotaService planKotaService;
 
     @Override
     @Transactional
@@ -105,6 +107,8 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
             // CSV işle
             csvIsle(kaydedilenYukleme, dosya, kullanici);
             return ApiResponse.basarili("CSV dosyası başarıyla işlendi.", entitydenResponse(kaydedilenYukleme));
+        } catch (PlanLimitiAsimException e) {
+            throw e;
         } catch (Exception e) {
             kaydedilenYukleme.setDurum(YuklemeDurumu.HATA);
             kaydedilenYukleme.setHataMesaji(e.getMessage());
@@ -149,7 +153,15 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
         IceAktarmaAyristirici.Sonuc sonuc = IceAktarmaAyristirici.ayristir(IceAktarmaAyristirici.csvOku(dosya.getBytes()));
         yukleme.setToplamSatir(sonuc.toplamSatir());
 
+        // Ücretsiz planda aylık gider hakkı içe aktarmada da geçerlidir; kalan hak kadar satır eklenir.
+        if (!sonuc.giderler().isEmpty()) {
+            planKotaService.giderEklemeKontrol(kullanici, 1);
+        }
+        int eklenecek = planKotaService.iceAktarilabilir(kullanici, sonuc.giderler().size());
+        int limitNedeniyleEklenmeyen = sonuc.giderler().size() - eklenecek;
+
         List<Gider> giderler = sonuc.giderler().stream()
+                .limit(eklenecek)
                 .map(satir -> Gider.builder()
                         .kullanici(kullanici)
                         .kategori(varsayilanKategori)
@@ -169,7 +181,7 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
         }
         yukleme.setIslenenSatir(giderler.size());
         yukleme.setDurum(giderler.isEmpty() && !sonuc.hatalar().isEmpty() ? YuklemeDurumu.HATA : YuklemeDurumu.TAMAMLANDI);
-        yukleme.setHataMesaji(IceAktarmaOzeti.mesaj(sonuc));
+        yukleme.setHataMesaji(IceAktarmaOzeti.mesaj(sonuc, limitNedeniyleEklenmeyen));
         csvYuklemeRepository.save(yukleme);
         log.info("CSV işlendi. Kullanıcı: {}, Toplam: {}, Eklenen: {}, Atlanan: {}, Hatalı: {}",
                 kullanici.getId(), sonuc.toplamSatir(), giderler.size(), sonuc.atlananSayisi(), sonuc.hatalar().size());

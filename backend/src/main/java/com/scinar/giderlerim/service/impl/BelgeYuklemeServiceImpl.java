@@ -29,6 +29,7 @@ import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KategoriRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.BelgeYuklemeService;
+import com.scinar.giderlerim.service.PlanKotaService;
 import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,6 +76,7 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
     private final OpenAiConfig openAiConfig;
     private final RestTemplate restTemplate;
     private final SistemParametresiDegerService parametreler;
+    private final PlanKotaService planKotaService;
 
     @Override
     @Transactional
@@ -213,7 +215,10 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
     private void tabloIsle(BelgeYukleme yukleme, IceAktarmaAyristirici.HamTablo tablo, Kullanici kullanici) {
         Kategori varsayilanKategori = varsayilanKategoriGetir(kullanici);
         IceAktarmaAyristirici.Sonuc sonuc = IceAktarmaAyristirici.ayristir(tablo);
+        int eklenecek = planKotaService.iceAktarilabilir(kullanici, sonuc.giderler().size());
+        int limitNedeniyleEklenmeyen = sonuc.giderler().size() - eklenecek;
         List<Gider> giderler = sonuc.giderler().stream()
+                .limit(eklenecek)
                 .map(s -> giderOlustur(kullanici, varsayilanKategori, yukleme, s.tutar(), s.aciklama(), s.tarih(), s.odemeYontemi()))
                 .collect(Collectors.toCollection(ArrayList::new));
         if (!giderler.isEmpty()) {
@@ -222,7 +227,7 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
         yukleme.setToplamSatir(sonuc.toplamSatir());
         yukleme.setIslenenSatir(giderler.size());
         yukleme.setDurum(giderler.isEmpty() && !sonuc.hatalar().isEmpty() ? YuklemeDurumu.HATA : YuklemeDurumu.TAMAMLANDI);
-        yukleme.setHataMesaji(IceAktarmaOzeti.mesaj(sonuc));
+        yukleme.setHataMesaji(IceAktarmaOzeti.mesaj(sonuc, limitNedeniyleEklenmeyen));
         belgeYuklemeRepository.save(yukleme);
         log.info("Belge tablosu işlendi. Kullanıcı: {}, Tür: {}, Eklenen: {}, Atlanan: {}, Hatalı: {}",
                 kullanici.getId(), yukleme.getDosyaTuru(), giderler.size(), sonuc.atlananSayisi(), sonuc.hatalar().size());
