@@ -2,6 +2,8 @@ package com.scinar.giderlerim.service.impl;
 
 import com.scinar.giderlerim.util.AiIzinKapisi;
 import com.scinar.giderlerim.util.EmailDogrulamaKapisi;
+import com.scinar.giderlerim.util.IceAktarmaAyristirici;
+import com.scinar.giderlerim.util.IceAktarmaOzeti;
 import com.scinar.giderlerim.util.PiiMaskeleyici;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -164,115 +166,66 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
 
     // ========== Dosya İşleyiciler ==========
 
-    private void csvIsle(BelgeYukleme yukleme, MultipartFile dosya, Kullanici kullanici)
-            throws IOException, CsvException {
-        Kategori varsayilanKategori = varsayilanKategoriGetir(kullanici);
-
-        try (CSVReader csvReader = new CSVReader(
-                new InputStreamReader(dosya.getInputStream(), StandardCharsets.UTF_8))) {
-            List<String[]> satirlar = csvReader.readAll();
-            if (satirlar.isEmpty()) throw new GecersizDosyaException("CSV dosyası boş.");
-
-            String[] baslik = satirlar.get(0);
-            int toplamSatir = satirlar.size() - 1;
-            yukleme.setToplamSatir(toplamSatir);
-            belgeYuklemeRepository.save(yukleme);
-
-            int tarihIndex = -1, aciklamaIndex = -1, tutarIndex = -1, odemeYontemiIndex = -1;
-            for (int i = 0; i < baslik.length; i++) {
-                String sutun = normalles(baslik[i].trim());
-                switch (sutun) {
-                    case "tarih", "date" -> tarihIndex = i;
-                    case "aciklama", "description", "islem" -> aciklamaIndex = i;
-                    case "tutar", "miktar", "amount" -> tutarIndex = i;
-                    case "odeme_yontemi", "payment_method", "odeme" -> odemeYontemiIndex = i;
-                }
-            }
-            if (tarihIndex == -1 || tutarIndex == -1) {
-                throw new GecersizDosyaException("CSV'de gerekli sütunlar bulunamadı (tarih, tutar).");
-            }
-
-            List<Gider> giderler = new ArrayList<>();
-            List<String> hatalar = new ArrayList<>();
-
-            for (int i = 1; i < satirlar.size(); i++) {
-                String[] satir = satirlar.get(i);
-                try {
-                    if (satir.length <= Math.max(tarihIndex, tutarIndex)) {
-                        hatalar.add("Satır " + i + ": Eksik sütun"); continue;
-                    }
-                    LocalDate tarih = tarihParse(satir[tarihIndex].trim());
-                    BigDecimal tutar = tutarParse(satir[tutarIndex].trim());
-                    String aciklama = aciklamaIndex >= 0 && aciklamaIndex < satir.length
-                            ? satir[aciklamaIndex].trim() : null;
-                    OdemeYontemi odemeYontemi = odemeYontemiIndex >= 0 && odemeYontemiIndex < satir.length
-                            ? odemeYontemiParse(satir[odemeYontemiIndex].trim()) : OdemeYontemi.NAKIT;
-
-                    giderler.add(giderOlustur(kullanici, varsayilanKategori, yukleme, tutar, aciklama, tarih, odemeYontemi));
-                } catch (Exception e) {
-                    hatalar.add("Satır " + i + ": " + e.getMessage());
-                }
-            }
-            yuklemeKapat(yukleme, giderler, hatalar, toplamSatir);
-        }
+    private void csvIsle(BelgeYukleme yukleme, MultipartFile dosya, Kullanici kullanici) throws IOException {
+        tabloIsle(yukleme, IceAktarmaAyristirici.csvOku(dosya.getBytes()), kullanici);
     }
 
-    private void xlsxIsle(BelgeYukleme yukleme, MultipartFile dosya, Kullanici kullanici)
-            throws IOException {
-        Kategori varsayilanKategori = varsayilanKategoriGetir(kullanici);
-
+    private void xlsxIsle(BelgeYukleme yukleme, MultipartFile dosya, Kullanici kullanici) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(dosya.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
             if (sheet == null || sheet.getPhysicalNumberOfRows() < 2) {
                 throw new GecersizDosyaException("XLSX dosyası boş veya yeterli veri içermiyor.");
             }
-
-            Row baslikSatiri = sheet.getRow(0);
-            int toplamSatir = sheet.getPhysicalNumberOfRows() - 1;
-            yukleme.setToplamSatir(toplamSatir);
-            belgeYuklemeRepository.save(yukleme);
-
-            int tarihIndex = -1, aciklamaIndex = -1, tutarIndex = -1, odemeYontemiIndex = -1;
-            for (int i = 0; i < baslikSatiri.getLastCellNum(); i++) {
-                Cell cell = baslikSatiri.getCell(i);
-                if (cell == null) continue;
-                String sutun = normalles(cell.getStringCellValue().trim());
-                switch (sutun) {
-                    case "tarih", "date" -> tarihIndex = i;
-                    case "aciklama", "description", "islem" -> aciklamaIndex = i;
-                    case "tutar", "miktar", "amount" -> tutarIndex = i;
-                    case "odeme_yontemi", "payment_method", "odeme" -> odemeYontemiIndex = i;
-                }
-            }
-            if (tarihIndex == -1 || tutarIndex == -1) {
-                throw new GecersizDosyaException("XLSX'te gerekli sütunlar bulunamadı (tarih, tutar).");
-            }
-
-            List<Gider> giderler = new ArrayList<>();
-            List<String> hatalar = new ArrayList<>();
-            DataFormatter formatter = new DataFormatter();
-
-            for (int rowIdx = 1; rowIdx <= sheet.getLastRowNum(); rowIdx++) {
+            DataFormatter formatter = new DataFormatter(java.util.Locale.forLanguageTag("tr-TR"));
+            List<List<String>> satirlar = new ArrayList<>();
+            int sutunSayisi = 0;
+            for (int rowIdx = sheet.getFirstRowNum(); rowIdx <= sheet.getLastRowNum(); rowIdx++) {
                 Row satir = sheet.getRow(rowIdx);
                 if (satir == null) continue;
-                try {
-                    String tarihStr = formatter.formatCellValue(satir.getCell(tarihIndex)).trim();
-                    String tutarStr = formatter.formatCellValue(satir.getCell(tutarIndex)).trim();
-                    LocalDate tarih = tarihParse(tarihStr);
-                    BigDecimal tutar = tutarParse(tutarStr);
-                    String aciklama = aciklamaIndex >= 0
-                            ? formatter.formatCellValue(satir.getCell(aciklamaIndex)).trim() : null;
-                    OdemeYontemi odemeYontemi = odemeYontemiIndex >= 0
-                            ? odemeYontemiParse(formatter.formatCellValue(satir.getCell(odemeYontemiIndex)).trim())
-                            : OdemeYontemi.NAKIT;
-
-                    giderler.add(giderOlustur(kullanici, varsayilanKategori, yukleme, tutar, aciklama, tarih, odemeYontemi));
-                } catch (Exception e) {
-                    hatalar.add("Satır " + rowIdx + ": " + e.getMessage());
+                sutunSayisi = Math.max(sutunSayisi, satir.getLastCellNum());
+                List<String> hucreler = new ArrayList<>();
+                for (int c = 0; c < Math.max(satir.getLastCellNum(), 0); c++) {
+                    hucreler.add(hucreMetni(satir.getCell(c), formatter));
+                }
+                if (hucreler.stream().anyMatch(h -> !h.isBlank())) {
+                    satirlar.add(hucreler);
                 }
             }
-            yuklemeKapat(yukleme, giderler, hatalar, toplamSatir);
+            if (satirlar.size() < 2) {
+                throw new GecersizDosyaException("XLSX dosyası boş veya yeterli veri içermiyor.");
+            }
+            tabloIsle(yukleme, new IceAktarmaAyristirici.HamTablo(satirlar.get(0), satirlar.subList(1, satirlar.size())), kullanici);
         }
+    }
+
+    /** Tarih hücrelerini ISO biçiminde, sayıları ondalık noktalı ham değerle, diğerlerini görüntülendiği gibi okur. */
+    private static String hucreMetni(Cell hucre, DataFormatter formatter) {
+        if (hucre == null) return "";
+        if (hucre.getCellType() == CellType.NUMERIC) {
+            if (DateUtil.isCellDateFormatted(hucre)) {
+                return hucre.getLocalDateTimeCellValue().toLocalDate().toString();
+            }
+            return BigDecimal.valueOf(hucre.getNumericCellValue()).toPlainString();
+        }
+        return formatter.formatCellValue(hucre).trim();
+    }
+
+    private void tabloIsle(BelgeYukleme yukleme, IceAktarmaAyristirici.HamTablo tablo, Kullanici kullanici) {
+        Kategori varsayilanKategori = varsayilanKategoriGetir(kullanici);
+        IceAktarmaAyristirici.Sonuc sonuc = IceAktarmaAyristirici.ayristir(tablo);
+        List<Gider> giderler = sonuc.giderler().stream()
+                .map(s -> giderOlustur(kullanici, varsayilanKategori, yukleme, s.tutar(), s.aciklama(), s.tarih(), s.odemeYontemi()))
+                .collect(Collectors.toCollection(ArrayList::new));
+        if (!giderler.isEmpty()) {
+            giderRepository.saveAll(giderler);
+        }
+        yukleme.setToplamSatir(sonuc.toplamSatir());
+        yukleme.setIslenenSatir(giderler.size());
+        yukleme.setDurum(giderler.isEmpty() && !sonuc.hatalar().isEmpty() ? YuklemeDurumu.HATA : YuklemeDurumu.TAMAMLANDI);
+        yukleme.setHataMesaji(IceAktarmaOzeti.mesaj(sonuc));
+        belgeYuklemeRepository.save(yukleme);
+        log.info("Belge tablosu işlendi. Kullanıcı: {}, Tür: {}, Eklenen: {}, Atlanan: {}, Hatalı: {}",
+                kullanici.getId(), yukleme.getDosyaTuru(), giderler.size(), sonuc.atlananSayisi(), sonuc.hatalar().size());
     }
 
     private void pdfIsle(BelgeYukleme yukleme, MultipartFile dosya, Kullanici kullanici)
@@ -545,12 +498,6 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
         return LocalDate.now();
     }
 
-    private BigDecimal tutarParse(String tutarStr) {
-        String temiz = tutarStr.replace(",", ".").replaceAll("[^0-9.]", "");
-        BigDecimal tutar = new BigDecimal(temiz);
-        if (tutar.compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("Geçersiz tutar: " + tutarStr);
-        return tutar;
-    }
 
     private OdemeYontemi odemeYontemiParse(String deger) {
         if (deger == null || deger.isEmpty()) return OdemeYontemi.NAKIT;
