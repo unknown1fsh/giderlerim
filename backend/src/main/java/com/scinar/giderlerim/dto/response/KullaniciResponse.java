@@ -12,5 +12,8 @@ public record KullaniciResponse(
         ParaBirimi paraBirimi,
         String avatarUrl,
         Boolean adminMi,
-        Boolean aiIzni
+        Boolean aiIzni,
+        Boolean emailDogrulandi,
+        /** TRUE ise e-posta doğrulanana kadar yapay zeka ve dosya yükleme kapalıdır. */
+        Boolean emailDogrulamaGerekli
 ) {}

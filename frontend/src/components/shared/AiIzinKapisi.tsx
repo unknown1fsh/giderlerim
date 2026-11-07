@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import apiClient from '@/services/apiClient';
 import { useAuthStore } from '@/stores/authStore';
+import EmailDogrulamaKapisi from '@/components/shared/EmailDogrulama';
 import type { KullaniciResponse } from '@giderlerim/shared/types/kullanici.types';
 import type { ApiResponse } from '@giderlerim/shared/types/api.types';
 
@@ -45,7 +46,10 @@ export default function AiIzinKapisi({
   const [gonderiliyor, setGonderiliyor] = useState(false);
   const [hata, setHata] = useState('');
 
-  if (!gerekli || kullanici?.aiIzni) return <>{children}</>;
+  if (!gerekli) return <>{children}</>;
+  // Yeni hesaplarda önce e-posta doğrulaması istenir (backend de aynı sırayla kontrol eder).
+  if (kullanici?.emailDogrulamaGerekli) return <EmailDogrulamaKapisi>{children}</EmailDogrulamaKapisi>;
+  if (kullanici?.aiIzni) return <>{children}</>;
 
   const izinVer = async () => {
     setGonderiliyor(true);

@@ -4,6 +4,7 @@ import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
+import { EmailDogrulamaBandi } from "@/components/shared/EmailDogrulama";
 import { useAuthStore } from "@/stores/authStore";
 import { authService } from "@/services/authService";
 import { useRouter } from "next/navigation";
@@ -83,7 +84,10 @@ export default function AdminLayout({
         {/* Header */}
         <AppHeader />
         {/* Page Content */}
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
+        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+          <EmailDogrulamaBandi />
+          {children}
+        </div>
       </div>
     </div>
   );

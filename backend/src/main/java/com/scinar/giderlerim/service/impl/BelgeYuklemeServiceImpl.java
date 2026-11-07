@@ -1,6 +1,7 @@
 package com.scinar.giderlerim.service.impl;
 
 import com.scinar.giderlerim.util.AiIzinKapisi;
+import com.scinar.giderlerim.util.EmailDogrulamaKapisi;
 import com.scinar.giderlerim.util.PiiMaskeleyici;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -101,6 +102,7 @@ public class BelgeYuklemeServiceImpl implements BelgeYuklemeService {
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı."));
 
+        EmailDogrulamaKapisi.dogrula(kullanici);
         if (!kullanici.getPlan().enAz(PlanTuru.PREMIUM)) {
             throw new PlanLimitiAsimException("Belge yükleme özelliği Premium veya Ultra plana dahildir.");
         }
