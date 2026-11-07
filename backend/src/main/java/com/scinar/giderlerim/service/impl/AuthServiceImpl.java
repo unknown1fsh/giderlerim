@@ -11,9 +11,11 @@ import com.scinar.giderlerim.exception.KayitBulunamadiException;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.security.JwtService;
 import com.scinar.giderlerim.service.AuthService;
+import com.scinar.giderlerim.service.KullaniciKaydedildiEvent;
 import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final SistemParametresiDegerService parametreler;
+    private final ApplicationEventPublisher olayYayinci;
 
     @Override
     @Transactional
@@ -52,10 +55,12 @@ public class AuthServiceImpl implements AuthService {
                 .paraBirimi(ParaBirimi.TRY)
                 .aktif(true)
                 .emailDogrulandi(false)
+                .emailDogrulamaZorunlu(true)
                 .build();
 
         Kullanici kaydedilenKullanici = kullaniciRepository.save(yeniKullanici);
         log.info("Yeni kullanıcı kaydı oluşturuldu. ID: {}", kaydedilenKullanici.getId());
+        olayYayinci.publishEvent(new KullaniciKaydedildiEvent(kaydedilenKullanici.getEmail()));
 
         String accessToken = jwtService.generateAccessToken(kaydedilenKullanici);
         String refreshToken = jwtService.generateRefreshToken(kaydedilenKullanici.getId());

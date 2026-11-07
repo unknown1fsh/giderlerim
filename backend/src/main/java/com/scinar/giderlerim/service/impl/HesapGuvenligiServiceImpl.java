@@ -51,6 +51,9 @@ public class HesapGuvenligiServiceImpl implements HesapGuvenligiService {
         }
 
         kullaniciRepository.findByEmailAndDeletedAtIsNull(email.toLowerCase().trim())
+                // Zaten doğrulanmış hesaba tekrar doğrulama bağlantısı gönderilmez.
+                .filter(kullanici -> tur != HesapTokenTuru.EMAIL_DOGRULAMA
+                        || !Boolean.TRUE.equals(kullanici.getEmailDogrulandi()))
                 .ifPresent(kullanici -> tokenOlusturVeGonder(kullanici, tur, path, konu, aciklama));
     }
 
@@ -88,6 +91,8 @@ public class HesapGuvenligiServiceImpl implements HesapGuvenligiService {
     public void sifreSifirla(String hamToken, String yeniSifre) {
         HesapToken token = kullanilabilirToken(hamToken, HesapTokenTuru.SIFRE_SIFIRLAMA);
         token.getKullanici().setSifreHash(passwordEncoder.encode(yeniSifre));
+        // Sıfırlama bağlantısını açabilmek, e-posta kutusunun sahibi olmayı kanıtlar.
+        token.getKullanici().setEmailDogrulandi(true);
         token.setKullanildiAt(LocalDateTime.now());
     }
 

@@ -78,7 +78,15 @@ export default function SignInForm() {
                 />
               </div>
               <div>
-                <Label>Şifre <span className="text-error-500">*</span></Label>
+                <div className="flex items-center justify-between">
+                  <Label>Şifre <span className="text-error-500">*</span></Label>
+                  <Link
+                    href="/sifremi-unuttum"
+                    className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                  >
+                    Şifremi unuttum
+                  </Link>
+                </div>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}

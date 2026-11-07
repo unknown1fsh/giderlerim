@@ -21,6 +21,7 @@ import com.scinar.giderlerim.repository.GiderRepository;
 import com.scinar.giderlerim.repository.KategoriRepository;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.CsvYuklemeService;
+import com.scinar.giderlerim.util.EmailDogrulamaKapisi;
 import com.scinar.giderlerim.service.SistemParametresiDegerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,7 @@ public class CsvYuklemeServiceImpl implements CsvYuklemeService {
 
         Kullanici kullanici = kullaniciRepository.findById(kullaniciId)
                 .orElseThrow(() -> new KayitBulunamadiException("Kullanıcı bulunamadı."));
+        EmailDogrulamaKapisi.dogrula(kullanici);
 
         // Plan kontrolü: FREE kullanıcılar aylık 1 CSV yükleyebilir
         if (kullanici.getPlan() == PlanTuru.FREE) {

@@ -70,4 +70,36 @@ class HesapGuvenligiServiceImplTest {
         verifyNoInteractions(tokenRepository, passwordEncoder);
         verify(epostaGonderici, never()).hesapBaglantisiGonder(any(), any(), any(), any());
     }
+
+    @Test
+    void zatenDogrulanmisHesabaDogrulamaEpostasiGondermez() {
+        when(epostaGonderici.kullanilabilir()).thenReturn(true);
+        when(kullaniciRepository.findByEmailAndDeletedAtIsNull("ada@example.com"))
+                .thenReturn(Optional.of(Kullanici.builder().email("ada@example.com").emailDogrulandi(true).build()));
+
+        service.emailDogrulamaTalepEt("ada@example.com");
+
+        verifyNoInteractions(tokenRepository);
+        verify(epostaGonderici, never()).hesapBaglantisiGonder(any(), any(), any(), any());
+    }
+
+    @Test
+    void sifreSifirlamaEpostaSahipliginiKanitlarVeHesabiDogrular() {
+        String hamToken = HesapTokenGuvenligi.yeniToken();
+        Kullanici kullanici = Kullanici.builder().emailDogrulandi(false).emailDogrulamaZorunlu(true).build();
+        HesapToken token = HesapToken.builder()
+                .tur(HesapTokenTuru.SIFRE_SIFIRLAMA)
+                .kullanici(kullanici)
+                .sonKullanmaTarihi(LocalDateTime.now().plusMinutes(10))
+                .build();
+        when(tokenRepository.findByTokenHashAndTur(HesapTokenGuvenligi.hash(hamToken), HesapTokenTuru.SIFRE_SIFIRLAMA))
+                .thenReturn(Optional.of(token));
+        when(passwordEncoder.encode("YeniSifre1!")).thenReturn("yeni-hash");
+
+        service.sifreSifirla(hamToken, "YeniSifre1!");
+
+        org.assertj.core.api.Assertions.assertThat(kullanici.getSifreHash()).isEqualTo("yeni-hash");
+        org.assertj.core.api.Assertions.assertThat(kullanici.getEmailDogrulandi()).isTrue();
+        org.assertj.core.api.Assertions.assertThat(token.getKullanildiAt()).isNotNull();
+    }
 }

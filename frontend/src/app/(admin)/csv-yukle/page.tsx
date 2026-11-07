@@ -1,5 +1,6 @@
 'use client';
 
+import EmailDogrulamaKapisi from '@/components/shared/EmailDogrulama';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { csvService, CsvYuklemeResponse } from '@/services/csvService';
@@ -99,6 +100,8 @@ export default function CsvYuklePage() {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">CSV dosyanızı yükleyerek harcamalarınızı toplu ekleyin</p>
       </div>
 
+      <EmailDogrulamaKapisi>
+      <div className="space-y-6">
       {/* Plan bilgisi */}
       <div className={`rounded-xl border p-4 text-sm ${
         isPremium
@@ -221,6 +224,8 @@ export default function CsvYuklePage() {
           </div>
         </div>
       )}
+      </div>
+      </EmailDogrulamaKapisi>
     </div>
   );
 }

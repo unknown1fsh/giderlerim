@@ -24,6 +24,26 @@ export function createAuthService(client: AxiosInstance) {
       return response.data;
     },
 
+    async emailDogrulamaTalepEt(email: string): Promise<ApiResponse<null>> {
+      const response = await client.post<ApiResponse<null>>('/auth/email-dogrulama-talep', { email });
+      return response.data;
+    },
+
+    async emailDogrula(token: string): Promise<ApiResponse<null>> {
+      const response = await client.post<ApiResponse<null>>('/auth/email-dogrula', { token });
+      return response.data;
+    },
+
+    async sifreSifirlamaTalepEt(email: string): Promise<ApiResponse<null>> {
+      const response = await client.post<ApiResponse<null>>('/auth/sifre-sifirlama-talep', { email });
+      return response.data;
+    },
+
+    async sifreSifirla(token: string, yeniSifre: string): Promise<ApiResponse<null>> {
+      const response = await client.post<ApiResponse<null>>('/auth/sifre-sifirla', { token, yeniSifre });
+      return response.data;
+    },
+
     async beniBul(): Promise<ApiResponse<KullaniciResponse>> {
       const response = await client.get<ApiResponse<KullaniciResponse>>('/kullanici/profil');
       return response.data;

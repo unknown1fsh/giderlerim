@@ -9,6 +9,7 @@ import com.scinar.giderlerim.exception.KayitBulunamadiException;
 import com.scinar.giderlerim.repository.KullaniciRepository;
 import com.scinar.giderlerim.service.KullaniciService;
 import com.scinar.giderlerim.util.AiIzinKapisi;
+import com.scinar.giderlerim.util.EmailDogrulamaKapisi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -92,7 +93,9 @@ public class KullaniciServiceImpl implements KullaniciService {
                 kullanici.getParaBirimi(),
                 kullanici.getAvatarUrl(),
                 kullanici.getAdminMi(),
-                Boolean.TRUE.equals(kullanici.getAiIzni())
+                Boolean.TRUE.equals(kullanici.getAiIzni()),
+                Boolean.TRUE.equals(kullanici.getEmailDogrulandi()),
+                EmailDogrulamaKapisi.dogrulamaBekleniyor(kullanici)
         );
     }
 }

@@ -46,6 +46,13 @@ public class GlobalExceptionHandler {
                 .body(HataResponse.of("PLAN_LIMITI_ASIM", ex.getMessage()));
     }
 
+    @ExceptionHandler(EmailDogrulamaGerekliException.class)
+    public ResponseEntity<HataResponse> emailDogrulamaGerekli(EmailDogrulamaGerekliException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(HataResponse.of("EMAIL_DOGRULAMA_GEREKLI", ex.getMessage()));
+    }
+
     @ExceptionHandler(AiIzniGerekliException.class)
     public ResponseEntity<HataResponse> aiIzniGerekli(AiIzniGerekliException ex) {
         return ResponseEntity

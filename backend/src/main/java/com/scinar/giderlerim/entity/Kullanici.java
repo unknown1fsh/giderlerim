@@ -71,6 +71,11 @@ public class Kullanici implements UserDetails {
     @Builder.Default
     private Boolean adminMi = false;
 
+    /** TRUE ise e-posta doğrulanana kadar yapay zeka ve dosya yükleme kapalıdır (yeni hesaplar). */
+    @Column(name = "email_dogrulama_zorunlu", nullable = false)
+    @Builder.Default
+    private Boolean emailDogrulamaZorunlu = false;
+
     /** Yapay zeka sağlayıcısına veri aktarımı için açık rıza (KVKK). */
     @Column(name = "ai_izni", nullable = false)
     @Builder.Default

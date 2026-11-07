@@ -12,6 +12,7 @@ public final class AiIzinKapisi {
     private AiIzinKapisi() {}
 
     public static void dogrula(Kullanici kullanici) {
+        EmailDogrulamaKapisi.dogrula(kullanici);
         if (kullanici == null || !Boolean.TRUE.equals(kullanici.getAiIzni())) {
             throw new AiIzniGerekliException();
         }

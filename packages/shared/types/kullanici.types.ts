@@ -12,6 +12,9 @@ export interface KullaniciResponse {
   adminMi: boolean;
   /** Yapay zeka sağlayıcısına veri aktarımı için açık rıza. */
   aiIzni: boolean;
+  emailDogrulandi: boolean;
+  /** true ise e-posta doğrulanana kadar yapay zeka ve dosya yükleme kapalıdır. */
+  emailDogrulamaGerekli: boolean;
 }
 
 export interface ProfilGuncelleRequest {
