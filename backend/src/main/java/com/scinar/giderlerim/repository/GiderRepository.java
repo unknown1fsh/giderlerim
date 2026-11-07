@@ -125,6 +125,14 @@ public interface GiderRepository extends JpaRepository<Gider, Long> {
             @Param("ay") int ay,
             @Param("yil") int yil);
 
+    /** Plan kotası: belirli aralıkta GİRİLEN (created_at) silinmemiş gider sayısı; giderin tarih alanından bağımsızdır. */
+    @Query("SELECT COUNT(g) FROM Gider g WHERE g.kullanici.id = :kullaniciId AND g.deletedAt IS NULL "
+            + "AND g.createdAt >= :baslangic AND g.createdAt < :bitis")
+    long countByKullaniciIdAndCreatedAtBetween(
+            @Param("kullaniciId") Long kullaniciId,
+            @Param("baslangic") java.time.LocalDateTime baslangic,
+            @Param("bitis") java.time.LocalDateTime bitis);
+
     @Query("SELECT COUNT(g) FROM Gider g WHERE g.kullanici.id = :kullaniciId AND g.anormalMi = true AND g.deletedAt IS NULL")
     long countAnormalByKullaniciId(@Param("kullaniciId") Long kullaniciId);
 

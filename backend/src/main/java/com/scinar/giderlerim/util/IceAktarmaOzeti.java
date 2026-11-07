@@ -12,7 +12,16 @@ public final class IceAktarmaOzeti {
     private IceAktarmaOzeti() {}
 
     public static String mesaj(IceAktarmaAyristirici.Sonuc sonuc) {
+        return mesaj(sonuc, 0);
+    }
+
+    /** @param limitNedeniyleEklenmeyen ücretsiz plan aylık hakkı dolduğu için eklenmeyen gider satırları */
+    public static String mesaj(IceAktarmaAyristirici.Sonuc sonuc, int limitNedeniyleEklenmeyen) {
         List<String> parcalar = new ArrayList<>();
+        if (limitNedeniyleEklenmeyen > 0) {
+            parcalar.add(limitNedeniyleEklenmeyen + " satır ücretsiz planın aylık gider hakkı dolduğu için eklenmedi "
+                    + "(Pro ile sınırsız)");
+        }
         if (sonuc.atlananSayisi() > 0) {
             parcalar.add(sonuc.atlananSayisi() + " satır gider olmadığı için atlandı (gelir, iade veya kart ödemesi)");
         }
