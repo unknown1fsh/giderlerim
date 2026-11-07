@@ -6,6 +6,7 @@ import com.scinar.giderlerim.entity.Kullanici;
 import com.scinar.giderlerim.entity.SistemParametresi;
 import com.scinar.giderlerim.entity.enums.PlanTuru;
 import com.scinar.giderlerim.repository.*;
+import com.scinar.giderlerim.service.AbonelikService;
 import com.scinar.giderlerim.service.AdminService;
 import com.scinar.giderlerim.service.DestekTalebiService;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,7 @@ public class AdminServiceImpl implements AdminService {
     private final UyariRepository uyariRepository;
     private final SistemParametresiRepository sistemParametresiRepository;
     private final DestekTalebiService destekTalebiService;
+    private final AbonelikService abonelikService;
 
     @Override
     public ApiResponse<AdminIstatistikDto> getIstatistikler() {
@@ -139,7 +141,8 @@ public class AdminServiceImpl implements AdminService {
         }
 
         if (request.plan() != null) {
-            kullanici.setPlan(request.plan());
+            // Plan, abonelik kaydı üzerinden atanır; böylece Shopier abonelikleriyle tutarlı kalır.
+            abonelikService.adminPlanAta(kullanici, request.plan());
         }
         if (request.adminMi() != null) {
             kullanici.setAdminMi(request.adminMi());

@@ -72,6 +72,12 @@ export default function AdminPage() {
             )}
           </Link>
           <Link
+            href="/admin/odemeler"
+            className="rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100 dark:border-green-800 dark:bg-green-950 dark:text-green-300 transition-colors"
+          >
+            Ödemeler
+          </Link>
+          <Link
             href="/admin/sistem-parametreleri"
             className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 transition-colors"
           >

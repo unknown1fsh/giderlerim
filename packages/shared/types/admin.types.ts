@@ -74,3 +74,37 @@ export interface AdminKullaniciSayfaResponse {
   number: number;
   size: number;
 }
+
+export type SiparisDurumu =
+  | 'ISLENDI'
+  | 'KULLANICI_BULUNAMADI'
+  | 'URUN_TANIMSIZ'
+  | 'TUTAR_UYUSMUYOR'
+  | 'ODENMEDI'
+  | 'IADE_EDILDI'
+  | 'KISMI_IADE';
+
+export interface ShopierSiparisDto {
+  id: number;
+  shopierSiparisId: string;
+  urunId: string | null;
+  plan: 'PREMIUM' | 'ULTRA' | null;
+  donem: 'AYLIK' | 'YILLIK' | null;
+  tutar: number | null;
+  paraBirimi: string | null;
+  aliciEmail: string | null;
+  kullaniciId: number | null;
+  kullaniciEmail: string | null;
+  durum: SiparisDurumu;
+  aciklama: string | null;
+  createdAt: string;
+}
+
+export interface ShopierSiparisSayfaResponse {
+  icerik: ShopierSiparisDto[];
+  sayfa: number;
+  boyut: number;
+  toplamEleman: number;
+  toplamSayfa: number;
+  sonSayfa: boolean;
+}

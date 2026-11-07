@@ -6,8 +6,10 @@ import com.scinar.giderlerim.dto.response.ApiResponse;
 import com.scinar.giderlerim.dto.response.DestekTalebiResponse;
 import com.scinar.giderlerim.dto.response.SayfaliResponse;
 import com.scinar.giderlerim.entity.enums.DestekDurumu;
+import com.scinar.giderlerim.entity.enums.SiparisDurumu;
 import com.scinar.giderlerim.service.AdminService;
 import com.scinar.giderlerim.service.DestekTalebiService;
+import com.scinar.giderlerim.service.ShopierOdemeService;
 import com.scinar.giderlerim.util.SecurityYardimcisi;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final DestekTalebiService destekTalebiService;
+    private final ShopierOdemeService shopierOdemeService;
 
     // ── İstatistikler ──────────────────────────────────────────────────────
 
@@ -132,5 +135,23 @@ public class AdminController {
             @PathVariable Long id,
             @RequestParam DestekDurumu durum) {
         return ResponseEntity.ok(destekTalebiService.adminDurumGuncelle(id, durum));
+    }
+
+    // ── Ödemeler (Shopier siparişleri) ────────────────────────────────────
+
+    @GetMapping("/odemeler")
+    public ResponseEntity<ApiResponse<SayfaliResponse<ShopierSiparisDto>>> odemeleriListele(
+            @RequestParam(required = false) SiparisDurumu durum,
+            @RequestParam(defaultValue = "0") int sayfa,
+            @RequestParam(defaultValue = "20") int boyut) {
+        return ResponseEntity.ok(ApiResponse.basarili(shopierOdemeService.siparisleriListele(durum, sayfa, boyut)));
+    }
+
+    @PutMapping("/odemeler/{id}/kullanici/{kullaniciId}")
+    public ResponseEntity<ApiResponse<ShopierSiparisDto>> odemeyiKullaniciyaAta(
+            @PathVariable Long id,
+            @PathVariable Long kullaniciId) {
+        return ResponseEntity.ok(ApiResponse.basarili("Ödeme kullanıcıya atandı ve abonelik başlatıldı.",
+                shopierOdemeService.siparisiKullaniciyaAta(id, kullaniciId)));
     }
 }

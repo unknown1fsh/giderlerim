@@ -1,7 +1,9 @@
 package com.scinar.giderlerim.controller;
 
+import com.scinar.giderlerim.service.ShopierOdemeService;
 import com.scinar.giderlerim.util.ShopierImzaDogrulayici;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -21,8 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v1/odeme/shopier")
 public class ShopierWebhookController {
+
+    private final ShopierOdemeService odemeService;
 
     @Value("${shopier.webhook.token:}")
     private String webhookToken;
@@ -42,6 +47,8 @@ public class ShopierWebhookController {
     @PostMapping("/webhook")
     public ResponseEntity<Void> webhookPost(
             @RequestHeader(value = "Shopier-Signature", required = false) String shopierSignature,
+            @RequestHeader(value = "Shopier-Event", required = false) String olay,
+            @RequestHeader(value = "Shopier-Webhook-Id", required = false) String webhookId,
             @RequestBody(required = false) byte[] hamGovde
     ) {
         int boyut = hamGovde != null ? hamGovde.length : 0;
@@ -56,7 +63,14 @@ public class ShopierWebhookController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        log.info("Shopier webhook kabul edildi (boyut={}, iz={})", boyut, parmakIzi);
+        log.info("Shopier webhook kabul edildi (olay={}, boyut={}, iz={})", olay, boyut, parmakIzi);
+        try {
+            odemeService.bildirimIsle(webhookId, olay, hamGovde);
+        } catch (RuntimeException e) {
+            // 200 dışı yanıt Shopier'in bildirimi yeniden göndermesini sağlar (72 saate kadar).
+            log.error("Shopier bildirimi işlenemedi (olay={}, iz={})", olay, parmakIzi, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
         return ResponseEntity.ok().build();
     }
 

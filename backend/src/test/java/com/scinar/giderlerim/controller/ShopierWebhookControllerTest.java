@@ -1,6 +1,7 @@
 package com.scinar.giderlerim.controller;
 
 import com.scinar.giderlerim.security.JwtAuthFilter;
+import com.scinar.giderlerim.service.ShopierOdemeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,6 +44,9 @@ class ShopierWebhookControllerTest {
     @MockBean
     JwtAuthFilter jwtAuthFilter;
 
+    @MockBean
+    ShopierOdemeService odemeService;
+
     static String hexImza(String govde) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(new SecretKeySpec(TOKEN.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
@@ -49,8 +58,12 @@ class ShopierWebhookControllerTest {
         mockMvc.perform(post("/api/v1/odeme/shopier/webhook")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Shopier-Signature", hexImza(GOVDE))
+                        .header("Shopier-Event", "order.created")
+                        .header("Shopier-Webhook-Id", "wh-1")
                         .content(GOVDE))
                 .andExpect(status().isOk());
+
+        verify(odemeService).bildirimIsle(eq("wh-1"), eq("order.created"), any());
 
         assertThat(cikti.getAll()).contains("Shopier webhook kabul edildi");
         assertThat(cikti.getAll()).doesNotContain("musteri@ornek.com").doesNotContain(TOKEN);
@@ -63,6 +76,7 @@ class ShopierWebhookControllerTest {
                         .content(GOVDE))
                 .andExpect(status().isUnauthorized());
 
+        verify(odemeService, never()).bildirimIsle(any(), any(), any());
         assertThat(cikti.getAll()).contains("imza geçersiz veya eksik").doesNotContain("musteri@ornek.com");
     }
 
@@ -73,5 +87,16 @@ class ShopierWebhookControllerTest {
                         .header("Shopier-Signature", "00".repeat(32))
                         .content(GOVDE))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void islemeHatasinda500DonerKiShopierYenidenDenesin() throws Exception {
+        doThrow(new IllegalStateException("veritabanı yok")).when(odemeService).bildirimIsle(any(), any(), any());
+
+        mockMvc.perform(post("/api/v1/odeme/shopier/webhook")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Shopier-Signature", hexImza(GOVDE))
+                        .content(GOVDE))
+                .andExpect(status().isInternalServerError());
     }
 }
